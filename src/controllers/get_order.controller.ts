@@ -15,7 +15,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
     /*--------------------------------------FETCHING DATA FROM CUSTOM API------------------------------------------*/
 
     const { data } = await axios.get(
-      `https://${STORE}/admin/api/${API_VERSION}/orders.json`,
+      `https://${STORE}/admin/api/${API_VERSION}/orders.json?tag=TS_in_progress`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -53,7 +53,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
           carrier_branch_id: "null",
           extra_branch_id: "null",
           priority: 4,
-          status: "unfulfilled",
+          status: structure.tags,
           recipient_name: structure.shipping_address.name,
           recipient_contact: "null",
           recipient_street: structure.shipping_address.address1,
@@ -147,8 +147,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
         /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
         const total_unfulfilled_data = total_db_data.filter(
           (unfulfilled_data: any) =>
-            unfulfilled_data.status === "unfulfilled" ||
-            unfulfilled_data.status === "in_progress"
+            unfulfilled_data.status.includes('TS_')
         );
         if (total_unfulfilled_data.length === 0) {
           res.status(200).json({
@@ -156,7 +155,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
           });
         } else if (total_unfulfilled_data.length > 0) {
           res.status(200).json({
-            message: `There are no new unfulfilled orders. All unfulfilled orders has been gotten`,
+            message: `All unfulfilled orders have been fetched`,
             data: total_unfulfilled_data,
           });
         }
@@ -208,9 +207,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
           /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
 
           const total_unfulfilled_data = total_db_data.filter(
-            (unfulfilled_data: any) =>
-              unfulfilled_data.status === "unfulfilled" ||
-              unfulfilled_data.status === "in_progress"
+            (unfulfilled_data: any) => unfulfilled_data.status.includes("TS_")
           );
 
           if (total_unfulfilled_data.length === 0) {
@@ -272,9 +269,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
 
         /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
         const total_unfulfilled_data = total_db_data.filter(
-          (unfulfilled_data: any) =>
-            unfulfilled_data.status === "unfulfilled" ||
-            unfulfilled_data.status === "in_progress"
+          (unfulfilled_data: any) => unfulfilled_data.status.includes("TS_")
         );
 
         if (total_unfulfilled_data.length === 0) {

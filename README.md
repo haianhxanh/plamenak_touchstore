@@ -48,8 +48,8 @@ Make sure to run these commands in the root directory of your project where your
 
 ## 1. Get Unfulfilled Orders
 
-- **Local:** `localhost:PORT/order`
-- **Hosted:** `{hosted_url}/order` (e.g., `https://testing-7rog.onrender.com/order`)
+- **Local:** `localhost:PORT/orders`
+- **Hosted:** `{hosted_url}/orders` (e.g., `https://testing-7rog.onrender.com/order`)
 
 ## 2. Update Orders
 
@@ -58,8 +58,8 @@ Make sure to run these commands in the root directory of your project where your
 
 ## 3. Get All Orders in the Database
 
-- **Local:** `localhost:PORT/all_order`
-- **Hosted:** `{hosted_url}/all_order`
+- **Local:** `localhost:PORT/all_orders`
+- **Hosted:** `{hosted_url}/all_orders`
 
 # Setting Up Your Database
 
