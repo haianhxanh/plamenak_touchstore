@@ -53,7 +53,7 @@ export const update_order_status = async (req: Request, res: Response) => {
               where: {
                 order_id: +valid_order_id,
               },
-            }
+            },
           );
 
           return res.status(200).json({
@@ -61,9 +61,7 @@ export const update_order_status = async (req: Request, res: Response) => {
           });
         }
 
-        if (
-          valid_order_status === "fulfilled"
-        ) {
+        if (valid_order_status === "fulfilled") {
           /*-----------UPDATING THE FULFILLMENT STATUS FOR ORDERS ON SHOPIFY----------------------*/
 
           /*------------------Get list of fulfillment orders------------------------*/
@@ -73,7 +71,7 @@ export const update_order_status = async (req: Request, res: Response) => {
               headers: {
                 "X-Shopify-Access-Token": ACCESS_TOKEN!,
               },
-            }
+            },
           );
 
           data.fulfillment_orders.map(async (order: any) => {
@@ -94,7 +92,7 @@ export const update_order_status = async (req: Request, res: Response) => {
                   where: {
                     order_id: +valid_order_id,
                   },
-                }
+                },
               );
 
               const create_fulfillment = {
@@ -111,15 +109,14 @@ export const update_order_status = async (req: Request, res: Response) => {
                     "X-Shopify-Access-Token": ACCESS_TOKEN!,
                     "Content-Type": "application/json",
                   },
-                }
+                },
               );
 
               res.status(200).json({
                 message: `Status for order with ID - ${valid_order_id} is now updated to FULFILLED`,
               });
-            } 
+            }
           });
-
         } else {
           return res.status(400).json({
             message: `Wrong UPDATE INPUT. Use either 'fulfilled', 'in_progress', or 'fulfilled to send status update.`,
@@ -139,8 +136,7 @@ export const update_order_status = async (req: Request, res: Response) => {
         }
 
         if (valid_order_status === "fulfilled") {
-
-       /*-----------UPDATING THE FULFILLMENT STATUS FOR ORDERS ON SHOPIFY----------------------*/
+          /*-----------UPDATING THE FULFILLMENT STATUS FOR ORDERS ON SHOPIFY----------------------*/
 
           /*------------------Get list of fulfillment orders------------------------*/
           const { data } = await axios.get(
@@ -149,7 +145,7 @@ export const update_order_status = async (req: Request, res: Response) => {
               headers: {
                 "X-Shopify-Access-Token": ACCESS_TOKEN!,
               },
-            }
+            },
           );
 
           data.fulfillment_orders.map(async (order: any) => {
@@ -162,14 +158,13 @@ export const update_order_status = async (req: Request, res: Response) => {
                 message: `Fulfillment order ${order.id} has an unfulfillable status= closed.`,
               });
             } else {
-
               const update_status = await Orders.update(
                 { status: valid_order_status },
                 {
                   where: {
                     order_id: +valid_order_id,
                   },
-                }
+                },
               );
 
               const create_fulfillment = {
@@ -186,14 +181,14 @@ export const update_order_status = async (req: Request, res: Response) => {
                     "X-Shopify-Access-Token": ACCESS_TOKEN!,
                     "Content-Type": "application/json",
                   },
-                }
+                },
               );
 
               res.status(200).json({
                 message: `Status for order with ID - ${valid_order_id} is now updated to FULFILLED`,
               });
-          }
-          })
+            }
+          });
 
           return res.status(200).json({
             message: `Status for order with ID - ${valid_order_id} is now updated to FULFILLED`,
@@ -218,5 +213,3 @@ export const update_order_status = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
-
-

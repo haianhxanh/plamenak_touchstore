@@ -1,14 +1,15 @@
-import { Sequelize } from 'sequelize'
-import dotenv from 'dotenv'
+import { Sequelize } from "sequelize";
+import dotenv from "dotenv";
 
-dotenv.config()
+dotenv.config();
 
-const { DEV_DB_NAME, DEV_DB_USERNAME, DEV_DB_PASSWORD, DEV_DB_HOST } = process.env
+const { DEV_DB_NAME, DEV_DB_USERNAME, DEV_DB_PASSWORD, DEV_DB_HOST } =
+  process.env;
 
 export const db = new Sequelize(
-  DEV_DB_NAME!, 
-  DEV_DB_USERNAME!, 
-  DEV_DB_PASSWORD!, 
+  DEV_DB_NAME!,
+  DEV_DB_USERNAME!,
+  DEV_DB_PASSWORD!,
 
   {
     host: DEV_DB_HOST,
@@ -20,6 +21,6 @@ export const db = new Sequelize(
       ssl: {
         rejectUnauthorized: true,
       },
-    }
+    },
   },
 );
