@@ -6,6 +6,7 @@ import {
   validate_order_id,
   validate_order_status,
 } from "../utilities/input_validation";
+import { ORDER_STATUS } from "../utilities/constants";
 
 dotenv.config();
 
@@ -39,39 +40,121 @@ export const update_order_status = async (req: Request, res: Response) => {
       /*-----------------UPDATING THE ORDERS WITH THEIR CURRENT STATUS FROM THE CARRIER PROVIDER TO THE DATA IN THE DATABASE---------------------*/
       const received_order = find_order.dataValues;
 
-      if (received_order.status === "unfulfilled") {
-        if (valid_order_status === "unfulfilled") {
+      if (received_order.status != ORDER_STATUS.FULFILLED) {
+        /*------SAME STATUS ------*/
+        if (valid_order_status === received_order.status) {
           return res.status(400).json({
-            message: `Order with ID - ${valid_order_id} is already with an UNFULFILLED status.`,
+            message: `Order with ID - ${valid_order_id} is already with an ${valid_order_status} status.`,
           });
         }
 
-        if (valid_order_status === "in_progress") {
+        /*------ANY STATUS FROM ORDER_STATUS BUT FULFILLED ------*/
+        if (
+          valid_order_status != ORDER_STATUS.FULFILLED &&
+          (<any>Object).values(ORDER_STATUS).includes(valid_order_status)
+        ) {
           const update_status = await Orders.update(
             { status: valid_order_status },
             {
               where: {
                 order_id: +valid_order_id,
               },
+            }
+          );
+
+          const order_tags = await axios
+            .get(
+              `https://${STORE}/admin/api/${API_VERSION}/orders/${valid_order_id}.json`,
+              {
+                headers: {
+                  "X-Shopify-Access-Token": ACCESS_TOKEN!,
+                },
+              }
+            )
+            .then((response) => {
+              let order_tags = response.data.order.tags;
+              let order_tags_arr = order_tags.split(",");
+              order_tags_arr.forEach((tag: any, i: any) => {
+                if (tag.includes("TS_")) {
+                  order_tags_arr[i] = valid_order_status;
+                }
+              });
+              order_tags = order_tags_arr.toString();
+              return order_tags;
+            });
+
+          const body = {
+            order: {
+              id: valid_order_id,
+              tags: order_tags,
             },
+          };
+
+          const { data } = await axios.put(
+            `https://${STORE}/admin/api/${API_VERSION}/orders/${valid_order_id}.json`,
+            body,
+            {
+              headers: {
+                "X-Shopify-Access-Token": ACCESS_TOKEN!,
+              },
+            }
           );
 
           return res.status(200).json({
-            message: `Status for order with ID - ${valid_order_id} is now set to in_progress.`,
+            message: `Status for order with ID - ${valid_order_id} is now set to ${valid_order_status}.`,
           });
         }
 
-        if (valid_order_status === "fulfilled") {
+        /*------STATUS FULFILLED------*/
+        if (valid_order_status === ORDER_STATUS.FULFILLED) {
           /*-----------UPDATING THE FULFILLMENT STATUS FOR ORDERS ON SHOPIFY----------------------*/
 
           /*------------------Get list of fulfillment orders------------------------*/
+          const order_tags = await axios
+            .get(
+              `https://${STORE}/admin/api/${API_VERSION}/orders/${valid_order_id}.json`,
+              {
+                headers: {
+                  "X-Shopify-Access-Token": ACCESS_TOKEN!,
+                },
+              }
+            )
+            .then((response) => {
+              let order_tags = response.data.order.tags;
+              let order_tags_arr = order_tags.split(",");
+              order_tags_arr.forEach((tag: any, i: any) => {
+                if (tag.includes("TS_")) {
+                  order_tags_arr[i] = valid_order_status;
+                }
+              });
+              order_tags = order_tags_arr.toString();
+              return order_tags;
+            });
+
+          const body = {
+            order: {
+              id: valid_order_id,
+              tags: order_tags,
+            },
+          };
+
+          axios.put(
+            `https://${STORE}/admin/api/${API_VERSION}/orders/${valid_order_id}.json`,
+            body,
+            {
+              headers: {
+                "X-Shopify-Access-Token": ACCESS_TOKEN!,
+              },
+            }
+          );
+
           const { data } = await axios.get(
             `https://${STORE}/admin/api/${API_VERSION}/orders/${valid_order_id}/fulfillment_orders.json`,
             {
               headers: {
                 "X-Shopify-Access-Token": ACCESS_TOKEN!,
               },
-            },
+            }
           );
 
           data.fulfillment_orders.map(async (order: any) => {
@@ -92,7 +175,7 @@ export const update_order_status = async (req: Request, res: Response) => {
                   where: {
                     order_id: +valid_order_id,
                   },
-                },
+                }
               );
 
               const create_fulfillment = {
@@ -109,7 +192,7 @@ export const update_order_status = async (req: Request, res: Response) => {
                     "X-Shopify-Access-Token": ACCESS_TOKEN!,
                     "Content-Type": "application/json",
                   },
-                },
+                }
               );
 
               res.status(200).json({
@@ -119,11 +202,11 @@ export const update_order_status = async (req: Request, res: Response) => {
           });
         } else {
           return res.status(400).json({
-            message: `Wrong UPDATE INPUT. Use either 'fulfilled', 'in_progress', or 'fulfilled to send status update.`,
+            message: `Wrong UPDATE INPUT. Use either ${ORDER_STATUS.FULFILLED}, ${ORDER_STATUS.ERROR}, ${ORDER_STATUS.PACKED}, ${ORDER_STATUS.IN_PROGRESS} to send status update.`,
           });
         }
-      } else if (received_order.status === "in_progress") {
-        if (valid_order_status === "in_progress") {
+      } else if (received_order.status === ORDER_STATUS.IN_PROGRESS) {
+        if (valid_order_status === ORDER_STATUS.IN_PROGRESS) {
           return res.status(400).json({
             message: `Order with ID - ${valid_order_id} is already in progress.`,
           });
@@ -145,7 +228,7 @@ export const update_order_status = async (req: Request, res: Response) => {
               headers: {
                 "X-Shopify-Access-Token": ACCESS_TOKEN!,
               },
-            },
+            }
           );
 
           data.fulfillment_orders.map(async (order: any) => {
@@ -164,7 +247,7 @@ export const update_order_status = async (req: Request, res: Response) => {
                   where: {
                     order_id: +valid_order_id,
                   },
-                },
+                }
               );
 
               const create_fulfillment = {
@@ -181,7 +264,7 @@ export const update_order_status = async (req: Request, res: Response) => {
                     "X-Shopify-Access-Token": ACCESS_TOKEN!,
                     "Content-Type": "application/json",
                   },
-                },
+                }
               );
 
               res.status(200).json({

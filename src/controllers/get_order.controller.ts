@@ -3,6 +3,11 @@ import axios from "axios";
 import dotenv from "dotenv";
 import Orders from "../model/orders.model";
 import { v4 } from "uuid";
+import {
+  ORDER_STATUS,
+  UNFULFILLED_ORDER_STATUS,
+  CARRIERS,
+} from "../utilities/constants";
 
 dotenv.config();
 
@@ -15,13 +20,13 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
     /*--------------------------------------FETCHING DATA FROM CUSTOM API------------------------------------------*/
 
     const { data } = await axios.get(
-      `https://${STORE}/admin/api/${API_VERSION}/orders.json?tag=TS_in_progress`,
+      `https://${STORE}/admin/api/${API_VERSION}/orders.json?tag=TS_IN_PROGRESS`,
       {
         headers: {
           "Content-Type": "application/json",
           "X-Shopify-Access-Token": ACCESS_TOKEN!,
         },
-      },
+      }
     );
 
     /*--------------------------------------FILTERING UNFULFILLED ORDERS-----------------------------------------------*/
@@ -48,12 +53,19 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
         structure.shipping_lines.map((s_l: any) => {
           const custom_schema = {
             order_id: structure.id,
-            carrier: s_l.title,
-            carrier_product: "null",
-            carrier_branch_id: "null",
-            extra_branch_id: "null",
+            carrier: CARRIERS.find((carrier) => carrier.name == s_l.title)
+              ?.carrier,
+            carrier_product: CARRIERS.find(
+              (carrier) => carrier.name == s_l.title
+            )?.carrier_product,
+            carrier_branch_id: structure.note_attributes.find(
+              (attr: any) => attr.name == "PickupPointId"
+            )?.value,
+            extra_branch_id: structure.note_attributes.find(
+              (attr: any) => attr.name == "PickupPointId"
+            )?.value,
             priority: 4,
-            status: structure.tags,
+            status: "TS_IN_PROGRESS",
             recipient_name: structure.shipping_address.name,
             recipient_contact: "null",
             recipient_street: structure.shipping_address.address1,
@@ -126,7 +138,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
         });
 
         const recent_data = present_data.filter(
-          (data: any) => !prev_data.includes(data),
+          (data: any) => !prev_data.includes(data)
         );
 
         const new_data: any = [];
@@ -146,7 +158,10 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
 
           /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
           const total_unfulfilled_data = total_db_data.filter(
-            (unfulfilled_data: any) => unfulfilled_data.status.includes("TS_"),
+            (unfulfilled_data: any) =>
+              (<any>Object)
+                .values(ORDER_STATUS)
+                .includes(unfulfilled_data.status)
           );
           if (total_unfulfilled_data.length === 0) {
             res.status(200).json({
@@ -206,8 +221,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
             /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
 
             const total_unfulfilled_data = total_db_data.filter(
-              (unfulfilled_data: any) =>
-                unfulfilled_data.status.includes("TS_"),
+              (unfulfilled_data: any) => unfulfilled_data.status.includes("TS_")
             );
 
             if (total_unfulfilled_data.length === 0) {
@@ -269,7 +283,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
 
           /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
           const total_unfulfilled_data = total_db_data.filter(
-            (unfulfilled_data: any) => unfulfilled_data.status.includes("TS_"),
+            (unfulfilled_data: any) => unfulfilled_data.status.includes("TS_")
           );
 
           if (total_unfulfilled_data.length === 0) {
