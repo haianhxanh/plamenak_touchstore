@@ -19,13 +19,14 @@ const { APP_SECRET_KEY } = process.env;
 const auth = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const access_key = req.headers.authorization;
-        const key = access_key.slice(7);
-        if (key !== APP_SECRET_KEY) {
+        const key = access_key.split(" ")[1];
+        const decoded_key = Buffer.from(key, "base64").toString("utf8");
+        if (decoded_key !== APP_SECRET_KEY) {
             return res.status(401).json({
                 message: "INVALID ACCESS KEY. You are not authorized to access this endpoint",
             });
         }
-        else if (key === APP_SECRET_KEY) {
+        else if (decoded_key === APP_SECRET_KEY) {
             next();
         }
     }
