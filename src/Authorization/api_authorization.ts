@@ -23,9 +23,8 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
       next();
     }
   } catch (err) {
-    return res.status(401).json({
-      message:
-        "Invalid username and password. You are not authorized to access this endpoint",
-    });
+    var error = new Error("Not Authenticated");
+    res.status(401).set("WWW-Authenticate", "Basic");
+    next(error);
   }
 };
