@@ -15,24 +15,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.auth = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
-const { APP_SECRET_KEY } = process.env;
+const { APP_SECRET_KEY, APP_USERNAME, APP_PASSWORD } = process.env;
 const auth = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const access_key = req.headers.authorization;
         const key = access_key.split(" ")[1];
-        const decoded_key = Buffer.from(key, "base64").toString("utf8");
-        if (decoded_key !== APP_SECRET_KEY) {
-            return res.status(401).json({
-                message: "INVALID ACCESS KEY. You are not authorized to access this endpoint",
-            });
+        const decoded_key = Buffer.from(key, "base64").toString();
+        const username = decoded_key.split(":")[0];
+        const password = decoded_key.split(":")[1];
+        if (!(username === APP_USERNAME && password === APP_PASSWORD)) {
+            var error = new Error("Not Authenticated");
+            res.status(401).set("WWW-Authenticate", "Basic");
+            next(error);
         }
-        else if (decoded_key === APP_SECRET_KEY) {
+        else {
+            res.status(200);
             next();
         }
     }
     catch (err) {
         return res.status(401).json({
-            message: "INVALID ACCESS KEY. You are not authorized to access this endpoint",
+            message: "Invalid username and password. You are not authorized to access this endpoint",
         });
     }
 });
