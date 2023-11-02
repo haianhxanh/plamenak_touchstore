@@ -6,25 +6,25 @@ const { APP_SECRET_KEY, APP_USERNAME, APP_PASSWORD } = process.env;
 
 export const auth = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const access_key: any = req.headers.authorization;
+    const auth: any = req.headers.authorization;
 
-    const key = access_key.split(" ")[1];
-    const decoded_key: string = Buffer.from(key, "base64").toString();
+    const base64Credentials = auth.split(" ")[1];
+    const credentials = Buffer.from(base64Credentials, "base64").toString(
+      "ascii"
+    );
+    const [username, password] = credentials.split(":");
 
-    const username = decoded_key.split(":")[0];
-    const password = decoded_key.split(":")[1];
-
-    if (!(username === APP_USERNAME && password === APP_PASSWORD)) {
-      var error = new Error("Not Authenticated");
-      res.status(401).set("WWW-Authenticate", "Basic");
-      next(error);
-    } else {
-      res.status(200);
+    if (username === APP_USERNAME! && password === APP_PASSWORD!) {
       next();
+    } else {
+      res.setHeader(
+        "WWW-Authenticate",
+        'Basic realm="Authentication Required"'
+      );
+      return res.status(401).send("401 Unauthorized: Incorrect credentials.");
     }
   } catch (err) {
-    var error = new Error("Not Authenticated");
-    res.status(401).set("WWW-Authenticate", "Basic");
-    next(error);
+    res.setHeader("WWW-Authenticate", 'Basic realm="Authentication Required"');
+    return res.status(401).send("401 Unauthorized: Incorrect credentials.");
   }
 };

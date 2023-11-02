@@ -162,21 +162,21 @@ export const update_order_status = async (req: Request, res: Response) => {
               return { fulfillment_order_id: orders.fulfillment_order_id };
             });
 
+            const update_status = await Orders.update(
+              { status: valid_order_status },
+              {
+                where: {
+                  order_id: +valid_order_id,
+                },
+              }
+            );
+
             if (order.status === "closed") {
               res.status(200).json({
                 message: `Fulfillment order ${order.id} has an unfulfillable status= closed.`,
               });
             } else {
               /*------------------------------------------------------CREATE FULFILLMENT---------------------------------------------------------------*/
-
-              const update_status = await Orders.update(
-                { status: valid_order_status },
-                {
-                  where: {
-                    order_id: +valid_order_id,
-                  },
-                }
-              );
 
               const create_fulfillment = {
                 fulfillment: {

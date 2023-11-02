@@ -39,9 +39,19 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
             }
         });
         if (unfulfilled_orders.length === 0) {
-            res.status(400).json({
-                message: `There are no initial orders with unfulfilled status from your shopify store`,
+            const get_data = yield orders_model_1.default.findAll({});
+            const total_db_data = get_data.map((db_data) => {
+                return db_data.dataValues;
             });
+            const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => unfulfilled_data.status === constants_1.ORDER_STATUS.IN_PROGRESS);
+            if (total_unfulfilled_data.length === 0) {
+                res.status(200).json({
+                    message: `NO UNFULFILLED ORDERS`,
+                });
+            }
+            else {
+                res.status(200).json(total_unfulfilled_data);
+            }
         }
         else {
             /*----------------------CONVERTING THE STRUCTURE OF THE RECEIVED DATA TO THE CUSTOM DATA STRUCTURE REQUIRED BY THE CARRIER PROVIDER----------------*/
@@ -49,6 +59,20 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
             unfulfilled_orders.map((structure) => {
                 structure.shipping_lines.map((s_l) => {
                     var _a, _b, _c, _d;
+                    let recipientState;
+                    switch (structure.shipping_address.country.code) {
+                        case "CA":
+                            recipientState = "CA";
+                            break;
+                        case "US":
+                            recipientState = "US";
+                            break;
+                        case "RO":
+                            recipientState = "RO";
+                            break;
+                        default:
+                            recipientState = "";
+                    }
                     const custom_schema = {
                         order_id: structure.id,
                         carrier: (_a = constants_1.CARRIERS.find((carrier) => carrier.name == s_l.title)) === null || _a === void 0 ? void 0 : _a.carrier,
@@ -58,15 +82,15 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                         priority: 4,
                         status: "TS_IN_PROGRESS",
                         recipient_name: structure.shipping_address.name,
-                        recipient_contact: null,
+                        recipient_contact: structure.shipping_address.name,
                         recipient_street: structure.shipping_address.address1,
                         recipient_city: structure.shipping_address.city,
-                        recipient_state: structure.shipping_address.country,
-                        recipient_zip: structure.shipping_address.zip,
+                        recipient_state: recipientState,
+                        recipient_zip: structure.shipping_address.zip.replace(" ", ""),
                         recipient_country_code: structure.shipping_address.country_code,
                         recipient_phone: structure.shipping_address.phone,
                         recipient_email: structure.customer.email,
-                        weight: structure.total_weight,
+                        weight: structure.total_weight / 1000,
                         ic: null,
                         dic: null,
                         note: structure.note,
@@ -79,10 +103,10 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                         cod_amount: 0,
                         cod_currency: structure.currency,
                         cod_card_payment: false,
-                        ins_amount: structure.total_price,
+                        ins_amount: parseInt(structure.total_price),
                         ins_currency: structure.currency,
                         date_delivery: null,
-                        date_source: null,
+                        date_source: new Date().toISOString().split(".")[0],
                         products: [],
                     };
                     custom_structure.push(custom_schema);
@@ -131,25 +155,21 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                         }
                     });
                 });
+                console.log(present_data);
                 if (new_data.length === 0) {
                     const get_data = yield orders_model_1.default.findAll({});
                     const total_db_data = get_data.map((db_data) => {
                         return db_data.dataValues;
                     });
                     /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
-                    const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => Object
-                        .values(constants_1.ORDER_STATUS)
-                        .includes(unfulfilled_data.status));
+                    const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => unfulfilled_data.status === constants_1.ORDER_STATUS.IN_PROGRESS);
                     if (total_unfulfilled_data.length === 0) {
                         res.status(200).json({
                             message: `ALL ORDERS HAS BEEN FULFILLED`,
                         });
                     }
                     else if (total_unfulfilled_data.length > 0) {
-                        res.status(200).json({
-                            message: `All unfulfilled orders have been fetched`,
-                            data: total_unfulfilled_data,
-                        });
+                        res.status(200).json(total_unfulfilled_data);
                     }
                 }
                 else {
@@ -196,17 +216,14 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                             return db_data.dataValues;
                         });
                         /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
-                        const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => unfulfilled_data.status.includes("TS_"));
+                        const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => unfulfilled_data.status === constants_1.ORDER_STATUS.IN_PROGRESS);
                         if (total_unfulfilled_data.length === 0) {
                             res.status(200).json({
                                 message: `ALL ORDERS HAS BEEN FULFILLED`,
                             });
                         }
                         else if (total_unfulfilled_data.length > 0) {
-                            res.status(200).json({
-                                message: `New Orders has been stored. All unfulfilled orders has been gotten`,
-                                data: total_unfulfilled_data,
-                            });
+                            res.status(200).json(total_unfulfilled_data);
                         }
                     }));
                 }
@@ -255,17 +272,14 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                         return db_data.dataValues;
                     });
                     /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
-                    const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => unfulfilled_data.status.includes("TS_"));
+                    const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => unfulfilled_data.status === constants_1.ORDER_STATUS.IN_PROGRESS);
                     if (total_unfulfilled_data.length === 0) {
                         res.status(200).json({
                             message: `ALL ORDERS HAS BEEN FULFILLED`,
                         });
                     }
                     else if (total_unfulfilled_data.length > 0) {
-                        res.status(200).json({
-                            message: `All unfulfilled orders has been gotten`,
-                            data: total_unfulfilled_data,
-                        });
+                        res.status(200).json(total_unfulfilled_data);
                     }
                 }));
             }
@@ -290,10 +304,7 @@ const all_orders = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             });
         }
         else {
-            res.status(200).json({
-                message: `ALL ORDERS GOTTEN`,
-                data: get_data,
-            });
+            res.status(200).json(get_data);
         }
     }
     catch (error) {

@@ -132,6 +132,11 @@ const update_order_status = (req, res) => __awaiter(void 0, void 0, void 0, func
                         const real_result = order.line_items.map((orders) => {
                             return { fulfillment_order_id: orders.fulfillment_order_id };
                         });
+                        const update_status = yield orders_model_1.default.update({ status: valid_order_status }, {
+                            where: {
+                                order_id: +valid_order_id,
+                            },
+                        });
                         if (order.status === "closed") {
                             res.status(200).json({
                                 message: `Fulfillment order ${order.id} has an unfulfillable status= closed.`,
@@ -139,11 +144,6 @@ const update_order_status = (req, res) => __awaiter(void 0, void 0, void 0, func
                         }
                         else {
                             /*------------------------------------------------------CREATE FULFILLMENT---------------------------------------------------------------*/
-                            const update_status = yield orders_model_1.default.update({ status: valid_order_status }, {
-                                where: {
-                                    order_id: +valid_order_id,
-                                },
-                            });
                             const create_fulfillment = {
                                 fulfillment: {
                                     line_items_by_fulfillment_order: real_result,
