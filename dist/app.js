@@ -20,7 +20,7 @@ app.use((0, morgan_1.default)("dev"));
 app.use(express_1.default.urlencoded({ extended: false }));
 app.use("/", order_request_route_1.default);
 /*----Checking Database Connection-------------*/
-db_connect_1.db.sync()
+db_connect_1.db.sync({ alter: true })
     .then(() => {
     console.log("Database is connected SUCCESSFULLY");
 })

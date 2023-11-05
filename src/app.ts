@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use("/", get_order_route);
 
 /*----Checking Database Connection-------------*/
-db.sync()
+db.sync({ alter: true })
   .then(() => {
     console.log("Database is connected SUCCESSFULLY");
   })

@@ -97,7 +97,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
             priority: 4,
             status: "TS_IN_PROGRESS",
             recipient_name: structure.shipping_address.name,
-            recipient_contact: structure.shipping_address.name,
+            recipient_contact: null,
             recipient_street: structure.shipping_address.address1,
             recipient_city: structure.shipping_address.city,
             recipient_state: recipientState,
@@ -179,8 +179,6 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
             }
           });
         });
-
-        console.log(present_data);
 
         if (new_data.length === 0) {
           const get_data: any = await Orders.findAll({});

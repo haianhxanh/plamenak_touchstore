@@ -44,7 +44,7 @@ Orders.init({
     },
     recipient_contact: {
         type: sequelize_1.DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
     },
     recipient_street: {
         type: sequelize_1.DataTypes.STRING,

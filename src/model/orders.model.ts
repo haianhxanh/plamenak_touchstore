@@ -94,7 +94,7 @@ Orders.init(
     },
     recipient_contact: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     recipient_street: {
       type: DataTypes.STRING,
@@ -201,7 +201,7 @@ Orders.init(
     sequelize: db,
     tableName: "Orders",
     modelName: "Orders",
-  },
+  }
 );
 
 export default Orders;

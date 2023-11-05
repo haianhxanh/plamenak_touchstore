@@ -13,6 +13,9 @@ exports.db = new sequelize_1.Sequelize(DEV_DB_NAME, DEV_DB_USERNAME, DEV_DB_PASS
     port: 5432,
     dialect: "postgres",
     logging: false,
+    define: {
+        timestamps: false,
+    },
     dialectOptions: {
         encrypt: true,
         ssl: {

@@ -82,7 +82,7 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                         priority: 4,
                         status: "TS_IN_PROGRESS",
                         recipient_name: structure.shipping_address.name,
-                        recipient_contact: structure.shipping_address.name,
+                        recipient_contact: null,
                         recipient_street: structure.shipping_address.address1,
                         recipient_city: structure.shipping_address.city,
                         recipient_state: recipientState,
@@ -155,7 +155,6 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                         }
                     });
                 });
-                console.log(present_data);
                 if (new_data.length === 0) {
                     const get_data = yield orders_model_1.default.findAll({});
                     const total_db_data = get_data.map((db_data) => {
