@@ -5,13 +5,9 @@ const db_connect_1 = require("../database_connection/db_connect");
 class Orders extends sequelize_1.Model {
 }
 Orders.init({
-    id: {
-        type: sequelize_1.DataTypes.UUID,
-        primaryKey: true,
-        allowNull: false,
-    },
     order_id: {
         type: sequelize_1.DataTypes.BIGINT,
+        primaryKey: true,
         allowNull: false,
     },
     carrier: {

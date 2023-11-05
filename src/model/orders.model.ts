@@ -14,7 +14,6 @@ interface Products {
 }
 
 export type ORDERS = {
-  id: string;
   order_id: number;
   carrier: string;
   carrier_product: string;
@@ -55,13 +54,9 @@ class Orders extends Model<ORDERS> {}
 
 Orders.init(
   {
-    id: {
-      type: DataTypes.UUID,
-      primaryKey: true,
-      allowNull: false,
-    },
     order_id: {
       type: DataTypes.BIGINT,
+      primaryKey: true,
       allowNull: false,
     },
     carrier: {

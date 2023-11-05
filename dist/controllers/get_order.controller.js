@@ -16,7 +16,6 @@ exports.all_orders = exports.get_unfulfilled_orders = void 0;
 const axios_1 = __importDefault(require("axios"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const orders_model_1 = __importDefault(require("../model/orders.model"));
-const uuid_1 = require("uuid");
 const constants_1 = require("../utilities/constants");
 dotenv_1.default.config();
 const { ACCESS_TOKEN, STORE, API_VERSION } = process.env;
@@ -174,7 +173,6 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                 else {
                     new_data.map((data) => __awaiter(void 0, void 0, void 0, function* () {
                         const checking_existing_data = yield orders_model_1.default.create({
-                            id: (0, uuid_1.v4)(),
                             order_id: data.order_id,
                             carrier: data.carrier,
                             carrier_product: data.carrier_product,
@@ -230,7 +228,6 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
             else {
                 custom_structure.map((data) => __awaiter(void 0, void 0, void 0, function* () {
                     const checking_existing_data = yield orders_model_1.default.create({
-                        id: (0, uuid_1.v4)(),
                         order_id: data.order_id,
                         carrier: data.carrier,
                         carrier_product: data.carrier_product,

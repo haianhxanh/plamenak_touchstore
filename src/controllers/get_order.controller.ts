@@ -202,7 +202,6 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
         } else {
           new_data.map(async (data: any) => {
             const checking_existing_data = await Orders.create({
-              id: v4(),
               order_id: data.order_id,
               carrier: data.carrier,
               carrier_product: data.carrier_product,
@@ -263,7 +262,6 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
       } else {
         custom_structure.map(async (data: any) => {
           const checking_existing_data = await Orders.create({
-            id: v4(),
             order_id: data.order_id,
             carrier: data.carrier,
             carrier_product: data.carrier_product,
