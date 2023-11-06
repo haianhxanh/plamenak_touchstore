@@ -3,19 +3,26 @@ import axios from "axios";
 import dotenv from "dotenv";
 import Orders from "../model/orders.model";
 import { v4 } from "uuid";
-import {
-  ORDER_STATUS,
-  UNFULFILLED_ORDER_STATUS,
-  CARRIERS,
-} from "../utilities/constants";
+import { ORDER_STATUS, CARRIERS } from "../utilities/constants";
+import { status_update } from "../utilities/status_update";
 
 dotenv.config();
 
 const { ACCESS_TOKEN, STORE, API_VERSION } = process.env;
 
+const ORDER_STATUSES = [
+  ORDER_STATUS.IN_PROGRESS,
+  ORDER_STATUS.DOWNLOADED,
+  ORDER_STATUS.ERROR,
+  ORDER_STATUS.PACKED,
+  ORDER_STATUS.FULFILLED,
+];
+
 /*-------------------------------------GETTING UNFULFILLED ORDERS------------------------------------------------*/
 
 export const get_unfulfilled_orders = async (req: Request, res: Response) => {
+  let orders_data;
+
   try {
     /*--------------------------------------FETCHING DATA FROM CUSTOM API------------------------------------------*/
 
@@ -49,15 +56,14 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
 
       const total_unfulfilled_data = total_db_data.filter(
         (unfulfilled_data: any) =>
-          unfulfilled_data.status === ORDER_STATUS.IN_PROGRESS
+          ORDER_STATUSES.includes(unfulfilled_data.status)
       );
 
       if (total_unfulfilled_data.length === 0) {
-        res.status(200).json({
-          message: `NO UNFULFILLED ORDERS`,
-        });
+        res.status(200).json({});
       } else {
         res.status(200).json(total_unfulfilled_data);
+        orders_data = total_unfulfilled_data;
       }
     } else {
       /*----------------------CONVERTING THE STRUCTURE OF THE RECEIVED DATA TO THE CUSTOM DATA STRUCTURE REQUIRED BY THE CARRIER PROVIDER----------------*/
@@ -189,15 +195,14 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
           /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
           const total_unfulfilled_data = total_db_data.filter(
             (unfulfilled_data: any) =>
-              unfulfilled_data.status === ORDER_STATUS.IN_PROGRESS
+              ORDER_STATUSES.includes(unfulfilled_data.status)
           );
 
           if (total_unfulfilled_data.length === 0) {
-            res.status(200).json({
-              message: `ALL ORDERS HAS BEEN FULFILLED`,
-            });
+            res.status(200).json({});
           } else if (total_unfulfilled_data.length > 0) {
             res.status(200).json(total_unfulfilled_data);
+            orders_data = total_unfulfilled_data;
           }
         } else {
           new_data.map(async (data: any) => {
@@ -247,15 +252,14 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
 
             const total_unfulfilled_data = total_db_data.filter(
               (unfulfilled_data: any) =>
-                unfulfilled_data.status === ORDER_STATUS.IN_PROGRESS
+                ORDER_STATUSES.includes(unfulfilled_data.status)
             );
 
             if (total_unfulfilled_data.length === 0) {
-              res.status(200).json({
-                message: `ALL ORDERS HAS BEEN FULFILLED`,
-              });
+              res.status(200).json({});
             } else if (total_unfulfilled_data.length > 0) {
               res.status(200).json(total_unfulfilled_data);
+              orders_data = total_unfulfilled_data;
             }
           });
         }
@@ -306,18 +310,37 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
           /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
           const total_unfulfilled_data = total_db_data.filter(
             (unfulfilled_data: any) =>
-              unfulfilled_data.status === ORDER_STATUS.IN_PROGRESS
+              ORDER_STATUSES.includes(unfulfilled_data.status)
           );
 
           if (total_unfulfilled_data.length === 0) {
-            res.status(200).json({
-              message: `ALL ORDERS HAS BEEN FULFILLED`,
-            });
+            res.status(200).json({});
           } else if (total_unfulfilled_data.length > 0) {
             res.status(200).json(total_unfulfilled_data);
+            orders_data = total_unfulfilled_data;
           }
         });
       }
+    }
+
+    // update order status to TS_IN_PROGRESS (bali se)
+    let order_ids: any = [];
+    orders_data != undefined &&
+      orders_data.map((order: any) => {
+        if (order.status != "TS_IN_PROGRESS") {
+          return;
+        }
+        order_ids.push(order.order_id);
+      });
+
+    if (
+      req.query.ts == "1" &&
+      orders_data != undefined &&
+      order_ids.length > 0
+    ) {
+      order_ids.forEach((order_id: string) => {
+        status_update(order_id, ORDER_STATUS.DOWNLOADED);
+      });
     }
   } catch (error) {
     console.error("Error getting unfulfilled_orders:", error);

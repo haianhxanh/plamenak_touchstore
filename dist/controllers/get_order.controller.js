@@ -17,10 +17,19 @@ const axios_1 = __importDefault(require("axios"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const orders_model_1 = __importDefault(require("../model/orders.model"));
 const constants_1 = require("../utilities/constants");
+const status_update_1 = require("../utilities/status_update");
 dotenv_1.default.config();
 const { ACCESS_TOKEN, STORE, API_VERSION } = process.env;
+const ORDER_STATUSES = [
+    constants_1.ORDER_STATUS.IN_PROGRESS,
+    constants_1.ORDER_STATUS.DOWNLOADED,
+    constants_1.ORDER_STATUS.ERROR,
+    constants_1.ORDER_STATUS.PACKED,
+    constants_1.ORDER_STATUS.FULFILLED,
+];
 /*-------------------------------------GETTING UNFULFILLED ORDERS------------------------------------------------*/
 const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let orders_data;
     try {
         /*--------------------------------------FETCHING DATA FROM CUSTOM API------------------------------------------*/
         const { data } = yield axios_1.default.get(`https://${STORE}/admin/api/${API_VERSION}/orders.json?tag=TS_IN_PROGRESS`, {
@@ -42,14 +51,13 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
             const total_db_data = get_data.map((db_data) => {
                 return db_data.dataValues;
             });
-            const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => unfulfilled_data.status === constants_1.ORDER_STATUS.IN_PROGRESS);
+            const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => ORDER_STATUSES.includes(unfulfilled_data.status));
             if (total_unfulfilled_data.length === 0) {
-                res.status(200).json({
-                    message: `NO UNFULFILLED ORDERS`,
-                });
+                res.status(200).json({});
             }
             else {
                 res.status(200).json(total_unfulfilled_data);
+                orders_data = total_unfulfilled_data;
             }
         }
         else {
@@ -160,14 +168,13 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                         return db_data.dataValues;
                     });
                     /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
-                    const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => unfulfilled_data.status === constants_1.ORDER_STATUS.IN_PROGRESS);
+                    const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => ORDER_STATUSES.includes(unfulfilled_data.status));
                     if (total_unfulfilled_data.length === 0) {
-                        res.status(200).json({
-                            message: `ALL ORDERS HAS BEEN FULFILLED`,
-                        });
+                        res.status(200).json({});
                     }
                     else if (total_unfulfilled_data.length > 0) {
                         res.status(200).json(total_unfulfilled_data);
+                        orders_data = total_unfulfilled_data;
                     }
                 }
                 else {
@@ -213,14 +220,13 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                             return db_data.dataValues;
                         });
                         /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
-                        const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => unfulfilled_data.status === constants_1.ORDER_STATUS.IN_PROGRESS);
+                        const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => ORDER_STATUSES.includes(unfulfilled_data.status));
                         if (total_unfulfilled_data.length === 0) {
-                            res.status(200).json({
-                                message: `ALL ORDERS HAS BEEN FULFILLED`,
-                            });
+                            res.status(200).json({});
                         }
                         else if (total_unfulfilled_data.length > 0) {
                             res.status(200).json(total_unfulfilled_data);
+                            orders_data = total_unfulfilled_data;
                         }
                     }));
                 }
@@ -268,17 +274,32 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                         return db_data.dataValues;
                     });
                     /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
-                    const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => unfulfilled_data.status === constants_1.ORDER_STATUS.IN_PROGRESS);
+                    const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => ORDER_STATUSES.includes(unfulfilled_data.status));
                     if (total_unfulfilled_data.length === 0) {
-                        res.status(200).json({
-                            message: `ALL ORDERS HAS BEEN FULFILLED`,
-                        });
+                        res.status(200).json({});
                     }
                     else if (total_unfulfilled_data.length > 0) {
                         res.status(200).json(total_unfulfilled_data);
+                        orders_data = total_unfulfilled_data;
                     }
                 }));
             }
+        }
+        // update order status to TS_IN_PROGRESS (bali se)
+        let order_ids = [];
+        orders_data != undefined &&
+            orders_data.map((order) => {
+                if (order.status != "TS_IN_PROGRESS") {
+                    return;
+                }
+                order_ids.push(order.order_id);
+            });
+        if (req.query.ts == "1" &&
+            orders_data != undefined &&
+            order_ids.length > 0) {
+            order_ids.forEach((order_id) => {
+                (0, status_update_1.status_update)(order_id, constants_1.ORDER_STATUS.DOWNLOADED);
+            });
         }
     }
     catch (error) {
