@@ -94,10 +94,11 @@ export const fulfill_order = async (req: Request, res: Response) => {
         const create_fulfillment = {
           fulfillment: {
             line_items_by_fulfillment_order: real_result,
+            notify_customer: true,
           },
         };
 
-        const newer_res: any = await axios.post(
+        const create_fulfillment_res: any = await axios.post(
           `https://${STORE}/admin/api/${API_VERSION}/fulfillments.json`,
           create_fulfillment,
           {

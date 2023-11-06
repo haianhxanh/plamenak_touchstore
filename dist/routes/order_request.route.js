@@ -12,5 +12,5 @@ const router = express_1.default.Router();
 router.get("/orders", api_authorization_1.auth, get_order_controller_1.get_unfulfilled_orders);
 router.put("/update_order", api_authorization_1.auth, update_order_status_controller_1.update_order_status);
 router.get("/all_orders", api_authorization_1.auth, get_order_controller_1.all_orders);
-router.put("/package-end", api_authorization_1.auth, fulfill_order_controller_1.fulfill_order);
+router.put("/send", api_authorization_1.auth, fulfill_order_controller_1.fulfill_order);
 exports.default = router;

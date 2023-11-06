@@ -12,6 +12,6 @@ const router = express.Router();
 router.get("/orders", auth, get_unfulfilled_orders);
 router.put("/update_order", auth, update_order_status);
 router.get("/all_orders", auth, all_orders);
-router.put("/package-end", auth, fulfill_order);
+router.put("/send", auth, fulfill_order);
 
 export default router;

@@ -84,9 +84,10 @@ const fulfill_order = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                 const create_fulfillment = {
                     fulfillment: {
                         line_items_by_fulfillment_order: real_result,
+                        notify_customer: true,
                     },
                 };
-                const newer_res = yield axios_1.default.post(`https://${STORE}/admin/api/${API_VERSION}/fulfillments.json`, create_fulfillment, {
+                const create_fulfillment_res = yield axios_1.default.post(`https://${STORE}/admin/api/${API_VERSION}/fulfillments.json`, create_fulfillment, {
                     headers: {
                         "X-Shopify-Access-Token": ACCESS_TOKEN,
                         "Content-Type": "application/json",
