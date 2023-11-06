@@ -56,7 +56,8 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
 
       const total_unfulfilled_data = total_db_data.filter(
         (unfulfilled_data: any) =>
-          ORDER_STATUSES.includes(unfulfilled_data.status)
+          ORDER_STATUSES.includes(unfulfilled_data.status) &&
+          unfulfilled_data.status != ORDER_STATUS.FULFILLED
       );
 
       if (total_unfulfilled_data.length === 0) {
@@ -195,7 +196,8 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
           /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
           const total_unfulfilled_data = total_db_data.filter(
             (unfulfilled_data: any) =>
-              ORDER_STATUSES.includes(unfulfilled_data.status)
+              ORDER_STATUSES.includes(unfulfilled_data.status) &&
+              unfulfilled_data.status != ORDER_STATUS.FULFILLED
           );
 
           if (total_unfulfilled_data.length === 0) {
@@ -252,7 +254,8 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
 
             const total_unfulfilled_data = total_db_data.filter(
               (unfulfilled_data: any) =>
-                ORDER_STATUSES.includes(unfulfilled_data.status)
+                ORDER_STATUSES.includes(unfulfilled_data.status) &&
+                unfulfilled_data.status != ORDER_STATUS.FULFILLED
             );
 
             if (total_unfulfilled_data.length === 0) {
@@ -310,7 +313,8 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
           /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
           const total_unfulfilled_data = total_db_data.filter(
             (unfulfilled_data: any) =>
-              ORDER_STATUSES.includes(unfulfilled_data.status)
+              ORDER_STATUSES.includes(unfulfilled_data.status) &&
+              unfulfilled_data.status != ORDER_STATUS.FULFILLED
           );
 
           if (total_unfulfilled_data.length === 0) {

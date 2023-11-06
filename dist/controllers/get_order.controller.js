@@ -51,7 +51,8 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
             const total_db_data = get_data.map((db_data) => {
                 return db_data.dataValues;
             });
-            const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => ORDER_STATUSES.includes(unfulfilled_data.status));
+            const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => ORDER_STATUSES.includes(unfulfilled_data.status) &&
+                unfulfilled_data.status != constants_1.ORDER_STATUS.FULFILLED);
             if (total_unfulfilled_data.length === 0) {
                 res.status(200).json({});
             }
@@ -168,7 +169,8 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                         return db_data.dataValues;
                     });
                     /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
-                    const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => ORDER_STATUSES.includes(unfulfilled_data.status));
+                    const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => ORDER_STATUSES.includes(unfulfilled_data.status) &&
+                        unfulfilled_data.status != constants_1.ORDER_STATUS.FULFILLED);
                     if (total_unfulfilled_data.length === 0) {
                         res.status(200).json({});
                     }
@@ -220,7 +222,8 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                             return db_data.dataValues;
                         });
                         /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
-                        const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => ORDER_STATUSES.includes(unfulfilled_data.status));
+                        const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => ORDER_STATUSES.includes(unfulfilled_data.status) &&
+                            unfulfilled_data.status != constants_1.ORDER_STATUS.FULFILLED);
                         if (total_unfulfilled_data.length === 0) {
                             res.status(200).json({});
                         }
@@ -274,7 +277,8 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                         return db_data.dataValues;
                     });
                     /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
-                    const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => ORDER_STATUSES.includes(unfulfilled_data.status));
+                    const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => ORDER_STATUSES.includes(unfulfilled_data.status) &&
+                        unfulfilled_data.status != constants_1.ORDER_STATUS.FULFILLED);
                     if (total_unfulfilled_data.length === 0) {
                         res.status(200).json({});
                     }
