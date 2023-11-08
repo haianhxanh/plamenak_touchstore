@@ -20,6 +20,11 @@ export const CARRIERS = [
     carrier_product: "business",
   },
   {
+    name: "Doručenie na adresu - GLS",
+    carrier: "gls",
+    carrier_product: "business",
+  },
+  {
     name: "Doručení na adresu - Česká pošta",
     carrier: "cpost",
     carrier_product: "DR",
