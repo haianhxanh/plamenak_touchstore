@@ -21,7 +21,7 @@ export const CARRIERS = [
   },
   {
     name: "Doručenie na adresu - GLS",
-    carrier: "gls",
+    carrier: "gls-sk",
     carrier_product: "business",
   },
   {
