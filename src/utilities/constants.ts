@@ -30,3 +30,11 @@ export const CARRIERS = [
     carrier_product: "place",
   },
 ];
+
+export const PAYMENTS = {
+  CASH_ON_DELIVERY: "Platba při převzetí",
+};
+
+export const VIRTUAL_PRODUCTS = {
+  CASH_ON_DELIVERY: "Platba na dobírku",
+};

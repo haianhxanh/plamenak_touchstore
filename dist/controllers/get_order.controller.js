@@ -32,7 +32,7 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
     let orders_data;
     try {
         /*--------------------------------------FETCHING DATA FROM CUSTOM API------------------------------------------*/
-        const { data } = yield axios_1.default.get(`https://${STORE}/admin/api/${API_VERSION}/orders.json?tag=TS_IN_PROGRESS`, {
+        const { data } = yield axios_1.default.get(`https://${STORE}/admin/api/${API_VERSION}/orders.json?tag=${constants_1.ORDER_STATUS.IN_PROGRESS}`, {
             headers: {
                 "Content-Type": "application/json",
                 "X-Shopify-Access-Token": ACCESS_TOKEN,
@@ -81,6 +81,13 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                         default:
                             recipientState = "";
                     }
+                    let cash_on_delivery_amount;
+                    if (structure.payment_gateway_names[0].includes(constants_1.PAYMENTS.CASH_ON_DELIVERY)) {
+                        cash_on_delivery_amount = parseFloat(structure.total_price);
+                    }
+                    else {
+                        cash_on_delivery_amount = 0;
+                    }
                     const custom_schema = {
                         order_id: structure.id,
                         carrier: (_a = constants_1.CARRIERS.find((carrier) => carrier.name == s_l.title)) === null || _a === void 0 ? void 0 : _a.carrier,
@@ -88,7 +95,7 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                         carrier_branch_id: (_c = structure.note_attributes.find((attr) => attr.name == "PickupPointId")) === null || _c === void 0 ? void 0 : _c.value,
                         extra_branch_id: (_d = structure.note_attributes.find((attr) => attr.name == "PickupPointId")) === null || _d === void 0 ? void 0 : _d.value,
                         priority: 4,
-                        status: "TS_IN_PROGRESS",
+                        status: constants_1.ORDER_STATUS.IN_PROGRESS,
                         recipient_name: structure.shipping_address.name,
                         recipient_contact: null,
                         recipient_street: structure.shipping_address.address1,
@@ -96,7 +103,7 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                         recipient_state: recipientState,
                         recipient_zip: structure.shipping_address.zip.replace(" ", ""),
                         recipient_country_code: structure.shipping_address.country_code,
-                        recipient_phone: structure.shipping_address.phone,
+                        recipient_phone: structure.shipping_address.phone.replaceAll(" ", ""),
                         recipient_email: structure.customer.email,
                         weight: structure.total_weight / 1000,
                         ic: null,
@@ -108,10 +115,10 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                         label: structure.order_number,
                         barcode: structure.order_number,
                         cod_vs: structure.order_number,
-                        cod_amount: 0,
+                        cod_amount: cash_on_delivery_amount,
                         cod_currency: structure.currency,
                         cod_card_payment: false,
-                        ins_amount: parseInt(structure.total_price),
+                        ins_amount: parseFloat(structure.total_price),
                         ins_currency: structure.currency,
                         date_delivery: null,
                         date_source: new Date().toISOString().split(".")[0],
@@ -124,6 +131,9 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                 custom_structure.map((struct) => {
                     if (structure.id === struct.order_id) {
                         structure.line_items.map((l_i) => {
+                            if (l_i.title == constants_1.VIRTUAL_PRODUCTS.CASH_ON_DELIVERY) {
+                                return;
+                            }
                             const product_order = {
                                 item_id: l_i.id,
                                 sku: l_i.sku,

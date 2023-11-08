@@ -3,7 +3,12 @@ import axios from "axios";
 import dotenv from "dotenv";
 import Orders from "../model/orders.model";
 import { v4 } from "uuid";
-import { ORDER_STATUS, CARRIERS } from "../utilities/constants";
+import {
+  ORDER_STATUS,
+  CARRIERS,
+  PAYMENTS,
+  VIRTUAL_PRODUCTS,
+} from "../utilities/constants";
 import { status_update } from "../utilities/status_update";
 
 dotenv.config();
@@ -27,7 +32,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
     /*--------------------------------------FETCHING DATA FROM CUSTOM API------------------------------------------*/
 
     const { data } = await axios.get(
-      `https://${STORE}/admin/api/${API_VERSION}/orders.json?tag=TS_IN_PROGRESS`,
+      `https://${STORE}/admin/api/${API_VERSION}/orders.json?tag=${ORDER_STATUS.IN_PROGRESS}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -88,6 +93,17 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
               recipientState = "";
           }
 
+          let cash_on_delivery_amount;
+          if (
+            structure.payment_gateway_names[0].includes(
+              PAYMENTS.CASH_ON_DELIVERY
+            )
+          ) {
+            cash_on_delivery_amount = parseFloat(structure.total_price);
+          } else {
+            cash_on_delivery_amount = 0;
+          }
+
           const custom_schema = {
             order_id: structure.id,
             carrier: CARRIERS.find((carrier) => carrier.name == s_l.title)
@@ -102,7 +118,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
               (attr: any) => attr.name == "PickupPointId"
             )?.value,
             priority: 4,
-            status: "TS_IN_PROGRESS",
+            status: ORDER_STATUS.IN_PROGRESS,
             recipient_name: structure.shipping_address.name,
             recipient_contact: null,
             recipient_street: structure.shipping_address.address1,
@@ -110,7 +126,10 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
             recipient_state: recipientState,
             recipient_zip: structure.shipping_address.zip.replace(" ", ""),
             recipient_country_code: structure.shipping_address.country_code,
-            recipient_phone: structure.shipping_address.phone,
+            recipient_phone: structure.shipping_address.phone.replaceAll(
+              " ",
+              ""
+            ),
             recipient_email: structure.customer.email,
             weight: structure.total_weight / 1000,
             ic: null,
@@ -122,10 +141,10 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
             label: structure.order_number,
             barcode: structure.order_number,
             cod_vs: structure.order_number,
-            cod_amount: 0,
+            cod_amount: cash_on_delivery_amount,
             cod_currency: structure.currency,
             cod_card_payment: false,
-            ins_amount: parseInt(structure.total_price),
+            ins_amount: parseFloat(structure.total_price),
             ins_currency: structure.currency,
             date_delivery: null,
             date_source: new Date().toISOString().split(".")[0],
@@ -139,6 +158,9 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
         custom_structure.map((struct: any) => {
           if (structure.id === struct.order_id) {
             structure.line_items.map((l_i: any) => {
+              if (l_i.title == VIRTUAL_PRODUCTS.CASH_ON_DELIVERY) {
+                return;
+              }
               const product_order = {
                 item_id: l_i.id,
                 sku: l_i.sku,
