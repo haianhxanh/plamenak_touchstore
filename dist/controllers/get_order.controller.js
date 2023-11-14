@@ -94,6 +94,9 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                         carrier_product: (_b = constants_1.CARRIERS.find((carrier) => carrier.name == s_l.title)) === null || _b === void 0 ? void 0 : _b.carrier_product,
                         carrier_branch_id: (_c = structure.note_attributes.find((attr) => attr.name == "PickupPointId")) === null || _c === void 0 ? void 0 : _c.value,
                         extra_branch_id: (_d = structure.note_attributes.find((attr) => attr.name == "PickupPointId")) === null || _d === void 0 ? void 0 : _d.value,
+                        send_address_id: structure.shipping_lines[0].title.includes(constants_1.STRINGS.ZASILKOVNA)
+                            ? constants_1.STRINGS.ZASILKOVNA_SENDER_ID
+                            : null,
                         priority: 4,
                         status: constants_1.ORDER_STATUS.IN_PROGRESS,
                         recipient_name: structure.shipping_address.name,
@@ -103,9 +106,13 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                         recipient_state: recipientState,
                         recipient_zip: structure.shipping_address.zip.replace(" ", ""),
                         recipient_country_code: structure.shipping_address.country_code,
-                        recipient_phone: structure.shipping_address.phone.replaceAll(" ", ""),
+                        recipient_phone: structure.shipping_address.phone
+                            ? structure.shipping_address.phone.replaceAll(" ", "")
+                            : null,
                         recipient_email: structure.customer.email,
-                        weight: structure.total_weight / 1000,
+                        weight: structure.total_weight
+                            ? structure.total_weight / 1000
+                            : null,
                         ic: null,
                         dic: null,
                         note: structure.note,
@@ -197,6 +204,7 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                             carrier_product: data.carrier_product,
                             carrier_branch_id: data.carrier_branch_id,
                             extra_branch_id: data.extra_branch_id,
+                            send_address_id: data.send_address_id,
                             priority: data.priority,
                             status: data.status,
                             recipient_name: data.recipient_name,
@@ -252,6 +260,7 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                         carrier_product: data.carrier_product,
                         carrier_branch_id: data.carrier_branch_id,
                         extra_branch_id: data.extra_branch_id,
+                        send_address_id: data.send_address_id,
                         priority: data.priority,
                         status: data.status,
                         recipient_name: data.recipient_name,

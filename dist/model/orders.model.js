@@ -26,6 +26,10 @@ Orders.init({
         type: sequelize_1.DataTypes.STRING,
         allowNull: true,
     },
+    send_address_id: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
     priority: {
         type: sequelize_1.DataTypes.INTEGER,
         allowNull: false,
@@ -72,7 +76,7 @@ Orders.init({
     },
     weight: {
         type: sequelize_1.DataTypes.FLOAT,
-        allowNull: false,
+        allowNull: true,
     },
     ic: {
         type: sequelize_1.DataTypes.STRING,

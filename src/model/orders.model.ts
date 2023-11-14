@@ -19,6 +19,7 @@ export type ORDERS = {
   carrier_product: string;
   carrier_branch_id: string;
   extra_branch_id: string;
+  send_address_id: string;
   priority: number;
   status: string;
   recipient_name: string;
@@ -75,6 +76,10 @@ Orders.init(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    send_address_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     priority: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -121,7 +126,7 @@ Orders.init(
     },
     weight: {
       type: DataTypes.FLOAT,
-      allowNull: false,
+      allowNull: true,
     },
     ic: {
       type: DataTypes.STRING,

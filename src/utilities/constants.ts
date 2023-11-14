@@ -43,3 +43,8 @@ export const PAYMENTS = {
 export const VIRTUAL_PRODUCTS = {
   CASH_ON_DELIVERY: "Platba na dobírku",
 };
+
+export const STRINGS = {
+  ZASILKOVNA: "Zásilkovna",
+  ZASILKOVNA_SENDER_ID: "Plamenak",
+};

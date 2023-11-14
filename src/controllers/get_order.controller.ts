@@ -8,6 +8,7 @@ import {
   CARRIERS,
   PAYMENTS,
   VIRTUAL_PRODUCTS,
+  STRINGS,
 } from "../utilities/constants";
 import { status_update } from "../utilities/status_update";
 
@@ -117,6 +118,11 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
             extra_branch_id: structure.note_attributes.find(
               (attr: any) => attr.name == "PickupPointId"
             )?.value,
+            send_address_id: structure.shipping_lines[0].title.includes(
+              STRINGS.ZASILKOVNA
+            )
+              ? STRINGS.ZASILKOVNA_SENDER_ID
+              : null,
             priority: 4,
             status: ORDER_STATUS.IN_PROGRESS,
             recipient_name: structure.shipping_address.name,
@@ -126,12 +132,13 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
             recipient_state: recipientState,
             recipient_zip: structure.shipping_address.zip.replace(" ", ""),
             recipient_country_code: structure.shipping_address.country_code,
-            recipient_phone: structure.shipping_address.phone.replaceAll(
-              " ",
-              ""
-            ),
+            recipient_phone: structure.shipping_address.phone
+              ? structure.shipping_address.phone.replaceAll(" ", "")
+              : null,
             recipient_email: structure.customer.email,
-            weight: structure.total_weight / 1000,
+            weight: structure.total_weight
+              ? structure.total_weight / 1000
+              : null,
             ic: null,
             dic: null,
             note: structure.note,
@@ -236,6 +243,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
               carrier_product: data.carrier_product,
               carrier_branch_id: data.carrier_branch_id,
               extra_branch_id: data.extra_branch_id,
+              send_address_id: data.send_address_id,
               priority: data.priority,
               status: data.status,
               recipient_name: data.recipient_name,
@@ -296,6 +304,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
             carrier_product: data.carrier_product,
             carrier_branch_id: data.carrier_branch_id,
             extra_branch_id: data.extra_branch_id,
+            send_address_id: data.send_address_id,
             priority: data.priority,
             status: data.status,
             recipient_name: data.recipient_name,

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.VIRTUAL_PRODUCTS = exports.PAYMENTS = exports.CARRIERS = exports.UNFULFILLED_ORDER_STATUS = exports.ORDER_STATUS = void 0;
+exports.STRINGS = exports.VIRTUAL_PRODUCTS = exports.PAYMENTS = exports.CARRIERS = exports.UNFULFILLED_ORDER_STATUS = exports.ORDER_STATUS = void 0;
 exports.ORDER_STATUS = {
     IN_PROGRESS: "TS_IN_PROGRESS",
     DOWNLOADED: "TS_DOWNLOADED",
@@ -22,7 +22,7 @@ exports.CARRIERS = [
     },
     {
         name: "Doručenie na adresu - GLS",
-        carrier: "gls",
+        carrier: "gls-sk",
         carrier_product: "business",
     },
     {
@@ -41,4 +41,8 @@ exports.PAYMENTS = {
 };
 exports.VIRTUAL_PRODUCTS = {
     CASH_ON_DELIVERY: "Platba na dobírku",
+};
+exports.STRINGS = {
+    ZASILKOVNA: "Zásilkovna",
+    ZASILKOVNA_SENDER_ID: "Plamenak",
 };
