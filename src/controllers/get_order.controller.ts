@@ -79,7 +79,6 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
       unfulfilled_orders.map((structure: any) => {
         structure.shipping_lines.map((s_l: any) => {
           let recipientState;
-
           switch (structure.shipping_address.country.code) {
             case "CA":
               recipientState = "CA";
@@ -105,10 +104,25 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
             cash_on_delivery_amount = 0;
           }
 
+          let carrier = CARRIERS.find(
+            (carrier) => carrier.name == s_l.title
+          )?.carrier;
+
+          let send_address_id;
+          switch (carrier) {
+            case "cpost":
+              send_address_id = STRINGS.CZECH_POST_SENDER_ID;
+              break;
+            case "zasilkovna":
+              send_address_id = STRINGS.ZASILKOVNA_SENDER_ID;
+              break;
+            default:
+              send_address_id = null;
+          }
+
           const custom_schema = {
             order_id: structure.id,
-            carrier: CARRIERS.find((carrier) => carrier.name == s_l.title)
-              ?.carrier,
+            carrier: carrier,
             carrier_product: CARRIERS.find(
               (carrier) => carrier.name == s_l.title
             )?.carrier_product,
@@ -118,11 +132,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
             extra_branch_id: structure.note_attributes.find(
               (attr: any) => attr.name == "PickupPointId"
             )?.value,
-            send_address_id: structure.shipping_lines[0].title.includes(
-              STRINGS.ZASILKOVNA
-            )
-              ? STRINGS.ZASILKOVNA_SENDER_ID
-              : null,
+            send_address_id: send_address_id,
             priority: 4,
             status: ORDER_STATUS.IN_PROGRESS,
             recipient_name: structure.shipping_address.name,

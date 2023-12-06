@@ -25,7 +25,12 @@ export const CARRIERS = [
     carrier_product: "business",
   },
   {
-    name: "Doručení na adresu - Česká pošta",
+    name: "Balíkovna - Výdejní místo vyberete po dokončení objednávky",
+    carrier: "cpost",
+    carrier_product: "NB",
+  },
+  {
+    name: "Česká Pošta - Doručení na adresu (Balík do ruky)",
     carrier: "cpost",
     carrier_product: "DR",
   },
@@ -45,6 +50,8 @@ export const VIRTUAL_PRODUCTS = {
 };
 
 export const STRINGS = {
+  CZECH_POST: "Česká Pošta",
+  CZECH_POST_SENDER_ID: "2",
   ZASILKOVNA: "Zásilkovna",
   ZASILKOVNA_SENDER_ID: "Plamenak",
 };

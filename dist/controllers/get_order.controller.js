@@ -88,15 +88,25 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                     else {
                         cash_on_delivery_amount = 0;
                     }
+                    let carrier = (_a = constants_1.CARRIERS.find((carrier) => carrier.name == s_l.title)) === null || _a === void 0 ? void 0 : _a.carrier;
+                    let send_address_id;
+                    switch (carrier) {
+                        case "cpost":
+                            send_address_id = constants_1.STRINGS.CZECH_POST_SENDER_ID;
+                            break;
+                        case "zasilkovna":
+                            send_address_id = constants_1.STRINGS.ZASILKOVNA_SENDER_ID;
+                            break;
+                        default:
+                            send_address_id = null;
+                    }
                     const custom_schema = {
                         order_id: structure.id,
-                        carrier: (_a = constants_1.CARRIERS.find((carrier) => carrier.name == s_l.title)) === null || _a === void 0 ? void 0 : _a.carrier,
+                        carrier: carrier,
                         carrier_product: (_b = constants_1.CARRIERS.find((carrier) => carrier.name == s_l.title)) === null || _b === void 0 ? void 0 : _b.carrier_product,
                         carrier_branch_id: (_c = structure.note_attributes.find((attr) => attr.name == "PickupPointId")) === null || _c === void 0 ? void 0 : _c.value,
                         extra_branch_id: (_d = structure.note_attributes.find((attr) => attr.name == "PickupPointId")) === null || _d === void 0 ? void 0 : _d.value,
-                        send_address_id: structure.shipping_lines[0].title.includes(constants_1.STRINGS.ZASILKOVNA)
-                            ? constants_1.STRINGS.ZASILKOVNA_SENDER_ID
-                            : null,
+                        send_address_id: send_address_id,
                         priority: 4,
                         status: constants_1.ORDER_STATUS.IN_PROGRESS,
                         recipient_name: structure.shipping_address.name,
