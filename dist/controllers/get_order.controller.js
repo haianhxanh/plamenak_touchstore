@@ -59,6 +59,7 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
             }
             else {
                 orders_data = total_unfulfilled_data;
+                tagOrdersAsDownloaded();
                 return res.status(200).json(total_unfulfilled_data);
             }
         }
@@ -89,7 +90,8 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                     else {
                         cash_on_delivery_amount = 0;
                     }
-                    let carrier = (_a = constants_2.CARRIERS.find((carrier) => carrier.name == s_l.title)) === null || _a === void 0 ? void 0 : _a.carrier;
+                    let carrier = ((_a = constants_2.CARRIERS.find((carrier) => carrier.name == s_l.title)) === null || _a === void 0 ? void 0 : _a.carrier) ||
+                        "cpost";
                     let send_address_id;
                     switch (carrier) {
                         case "cpost":
@@ -111,7 +113,7 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                     const custom_schema = {
                         order_id: structure.id,
                         carrier: carrier,
-                        carrier_product: (_b = constants_2.CARRIERS.find((carrier) => carrier.name == s_l.title)) === null || _b === void 0 ? void 0 : _b.carrier_product,
+                        carrier_product: ((_b = constants_2.CARRIERS.find((carrier) => carrier.name == s_l.title)) === null || _b === void 0 ? void 0 : _b.carrier_product) || "DR",
                         carrier_branch_id: (_c = structure.note_attributes.find((attr) => attr.name == "PickupPointId")) === null || _c === void 0 ? void 0 : _c.value,
                         extra_branch_id: (_d = structure.note_attributes.find((attr) => attr.name == "PickupPointId")) === null || _d === void 0 ? void 0 : _d.value,
                         send_address_id: send_address_id,
@@ -211,6 +213,7 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                     }
                     else if (total_unfulfilled_data.length > 0) {
                         orders_data = total_unfulfilled_data;
+                        tagOrdersAsDownloaded();
                         return res.status(200).json(total_unfulfilled_data);
                     }
                 }
@@ -266,6 +269,7 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                     }
                     else if (total_unfulfilled_data.length > 0) {
                         orders_data = total_unfulfilled_data;
+                        tagOrdersAsDownloaded();
                         return res.status(200).json(total_unfulfilled_data);
                     }
                 }
@@ -322,25 +326,35 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                 }
                 else if (total_unfulfilled_data.length > 0) {
                     orders_data = total_unfulfilled_data;
+                    tagOrdersAsDownloaded();
                     return res.status(200).json(total_unfulfilled_data);
                 }
             }
         }
         // update order status to TS_IN_PROGRESS (bali se)
-        let order_ids = [];
-        orders_data != undefined &&
-            orders_data.map((order) => {
-                if (order.status != constants_2.ORDER_STATUS.IN_PROGRESS) {
-                    return;
-                }
-                order_ids.push(order.order_id);
-            });
-        if (req.query.ts == "1" &&
+        function tagOrdersAsDownloaded() {
+            let interval = 2500;
+            let promise = Promise.resolve();
+            let order_ids = [];
             orders_data != undefined &&
-            order_ids.length > 0) {
-            order_ids.forEach((order_id) => {
-                (0, status_update_1.status_update)(order_id, constants_2.ORDER_STATUS.DOWNLOADED);
-            });
+                orders_data.map((order) => {
+                    if (order.status != constants_2.ORDER_STATUS.IN_PROGRESS) {
+                        return;
+                    }
+                    order_ids.push(order.order_id);
+                });
+            if (req.query.ts == "1" &&
+                orders_data != undefined &&
+                order_ids.length > 0) {
+                order_ids.forEach((order_id) => {
+                    promise = promise.then(function () {
+                        (0, status_update_1.status_update)(order_id, constants_2.ORDER_STATUS.DOWNLOADED);
+                        return new Promise(function (resolve) {
+                            setTimeout(resolve, interval);
+                        });
+                    });
+                });
+            }
         }
     }
     catch (error) {

@@ -71,6 +71,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
         return res.status(200).json({});
       } else {
         orders_data = total_unfulfilled_data;
+        tagOrdersAsDownloaded();
         return res.status(200).json(total_unfulfilled_data);
       }
     } else {
@@ -105,9 +106,9 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
             cash_on_delivery_amount = 0;
           }
 
-          let carrier: any = CARRIERS.find(
-            (carrier) => carrier.name == s_l.title
-          )?.carrier;
+          let carrier: any =
+            CARRIERS.find((carrier) => carrier.name == s_l.title)?.carrier ||
+            "cpost";
 
           let send_address_id: any;
           switch (carrier) {
@@ -131,9 +132,9 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
           const custom_schema = {
             order_id: structure.id,
             carrier: carrier,
-            carrier_product: CARRIERS.find(
-              (carrier) => carrier.name == s_l.title
-            )?.carrier_product,
+            carrier_product:
+              CARRIERS.find((carrier) => carrier.name == s_l.title)
+                ?.carrier_product || "DR",
             carrier_branch_id: structure.note_attributes.find(
               (attr: any) => attr.name == "PickupPointId"
             )?.value,
@@ -251,6 +252,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
             return res.status(200).json({});
           } else if (total_unfulfilled_data.length > 0) {
             orders_data = total_unfulfilled_data;
+            tagOrdersAsDownloaded();
             return res.status(200).json(total_unfulfilled_data);
           }
         } else {
@@ -313,6 +315,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
             return res.status(200).json({});
           } else if (total_unfulfilled_data.length > 0) {
             orders_data = total_unfulfilled_data;
+            tagOrdersAsDownloaded();
             return res.status(200).json(total_unfulfilled_data);
           }
         }
@@ -375,29 +378,40 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
           return res.status(200).json({});
         } else if (total_unfulfilled_data.length > 0) {
           orders_data = total_unfulfilled_data;
+          tagOrdersAsDownloaded();
           return res.status(200).json(total_unfulfilled_data);
         }
       }
     }
 
     // update order status to TS_IN_PROGRESS (bali se)
-    let order_ids: any = [];
-    orders_data != undefined &&
-      orders_data.map((order: any) => {
-        if (order.status != ORDER_STATUS.IN_PROGRESS) {
-          return;
-        }
-        order_ids.push(order.order_id);
-      });
 
-    if (
-      req.query.ts == "1" &&
+    function tagOrdersAsDownloaded() {
+      let interval = 2500;
+      let promise = Promise.resolve();
+      let order_ids: any = [];
       orders_data != undefined &&
-      order_ids.length > 0
-    ) {
-      order_ids.forEach((order_id: string) => {
-        status_update(order_id, ORDER_STATUS.DOWNLOADED);
-      });
+        orders_data.map((order: any) => {
+          if (order.status != ORDER_STATUS.IN_PROGRESS) {
+            return;
+          }
+          order_ids.push(order.order_id);
+        });
+
+      if (
+        req.query.ts == "1" &&
+        orders_data != undefined &&
+        order_ids.length > 0
+      ) {
+        order_ids.forEach((order_id: string) => {
+          promise = promise.then(function () {
+            status_update(order_id, ORDER_STATUS.DOWNLOADED);
+            return new Promise(function (resolve) {
+              setTimeout(resolve, interval);
+            });
+          });
+        });
+      }
     }
   } catch (error) {
     console.error("Error getting unfulfilled_orders:", error);
