@@ -6,6 +6,10 @@ export const ORDER_STATUS = {
   FULFILLED: "TS_FULFILLED",
 };
 
+export const SHOPIFY_FULFILLMENT_STATUS = {
+  FULFILLED: "fulfilled",
+};
+
 export const UNFULFILLED_ORDER_STATUS = {
   IN_PROGRESS: "TS_IN_PROGRESS",
   DOWNLOADED: "TS_DOWNLOADED",

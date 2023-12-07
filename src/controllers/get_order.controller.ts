@@ -1,3 +1,4 @@
+import { SHOPIFY_FULFILLMENT_STATUS } from "./../utilities/constants";
 import express, { Request, Response } from "express";
 import axios from "axios";
 import dotenv from "dotenv";
@@ -27,13 +28,13 @@ const ORDER_STATUSES = [
 /*-------------------------------------GETTING UNFULFILLED ORDERS------------------------------------------------*/
 
 export const get_unfulfilled_orders = async (req: Request, res: Response) => {
-  let orders_data;
+  let orders_data: any;
 
   try {
     /*--------------------------------------FETCHING DATA FROM CUSTOM API------------------------------------------*/
 
     const { data } = await axios.get(
-      `https://${STORE}/admin/api/${API_VERSION}/orders.json?tag=${ORDER_STATUS.IN_PROGRESS}`,
+      `https://${STORE}/admin/api/${API_VERSION}/orders.json?status=open`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -47,8 +48,8 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
     const fetched_data = data.orders;
     const unfulfilled_orders: any = fetched_data.filter((orders: any) => {
       if (
-        orders.fulfillment_status === null ||
-        orders.fulfillment_status === "partial"
+        orders.fulfillment_status != SHOPIFY_FULFILLMENT_STATUS.FULFILLED &&
+        orders.tags.includes(ORDER_STATUS.IN_PROGRESS)
       ) {
         return orders;
       }
@@ -67,10 +68,10 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
       );
 
       if (total_unfulfilled_data.length === 0) {
-        res.status(200).json({});
+        return res.status(200).json({});
       } else {
-        res.status(200).json(total_unfulfilled_data);
         orders_data = total_unfulfilled_data;
+        return res.status(200).json(total_unfulfilled_data);
       }
     } else {
       /*----------------------CONVERTING THE STRUCTURE OF THE RECEIVED DATA TO THE CUSTOM DATA STRUCTURE REQUIRED BY THE CARRIER PROVIDER----------------*/
@@ -78,7 +79,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
       const custom_structure: any = [];
       unfulfilled_orders.map((structure: any) => {
         structure.shipping_lines.map((s_l: any) => {
-          let recipientState;
+          let recipientState: any;
           switch (structure.shipping_address.country.code) {
             case "CA":
               recipientState = "CA";
@@ -93,7 +94,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
               recipientState = "";
           }
 
-          let cash_on_delivery_amount;
+          let cash_on_delivery_amount: any;
           if (
             structure.payment_gateway_names[0].includes(
               PAYMENTS.CASH_ON_DELIVERY
@@ -104,11 +105,11 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
             cash_on_delivery_amount = 0;
           }
 
-          let carrier = CARRIERS.find(
+          let carrier: any = CARRIERS.find(
             (carrier) => carrier.name == s_l.title
           )?.carrier;
 
-          let send_address_id;
+          let send_address_id: any;
           switch (carrier) {
             case "cpost":
               send_address_id = STRINGS.CZECH_POST_SENDER_ID;
@@ -118,6 +119,13 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
               break;
             default:
               send_address_id = null;
+          }
+
+          let order_name: any;
+          if (structure.name.includes("#")) {
+            order_name = parseInt(structure.name.split("#")[1]);
+          } else {
+            order_name = parseInt(structure.name);
           }
 
           const custom_schema = {
@@ -154,10 +162,10 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
             note: structure.note,
             driver_note: null,
             services: [],
-            ref: structure.order_number,
-            label: structure.order_number,
-            barcode: structure.order_number,
-            cod_vs: structure.order_number,
+            ref: order_name,
+            label: order_name,
+            barcode: order_name,
+            cod_vs: order_name,
             cod_amount: cash_on_delivery_amount,
             cod_currency: structure.currency,
             cod_card_payment: false,
@@ -240,13 +248,77 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
           );
 
           if (total_unfulfilled_data.length === 0) {
-            res.status(200).json({});
+            return res.status(200).json({});
           } else if (total_unfulfilled_data.length > 0) {
-            res.status(200).json(total_unfulfilled_data);
             orders_data = total_unfulfilled_data;
+            return res.status(200).json(total_unfulfilled_data);
           }
         } else {
-          new_data.map(async (data: any) => {
+          await Promise.all(
+            new_data.map(async (data: any) => {
+              const checking_existing_data = await Orders.create({
+                order_id: data.order_id,
+                carrier: data.carrier,
+                carrier_product: data.carrier_product,
+                carrier_branch_id: data.carrier_branch_id,
+                extra_branch_id: data.extra_branch_id,
+                send_address_id: data.send_address_id,
+                priority: data.priority,
+                status: data.status,
+                recipient_name: data.recipient_name,
+                recipient_contact: data.recipient_contact,
+                recipient_street: data.recipient_street,
+                recipient_city: data.recipient_city,
+                recipient_state: data.recipient_state,
+                recipient_zip: data.recipient_zip,
+                recipient_country_code: data.recipient_country_code,
+                recipient_phone: data.recipient_phone,
+                recipient_email: data.recipient_email,
+                weight: data.weight,
+                ic: data.ic,
+                dic: data.dic,
+                note: data.note,
+                driver_note: data.driver_note,
+                services: data.services,
+                ref: data.ref,
+                label: data.label,
+                barcode: data.barcode,
+                cod_vs: data.cod_vs,
+                cod_amount: data.cod_amount,
+                cod_currency: data.cod_currency,
+                cod_card_payment: data.cod_card_payment,
+                ins_amount: data.ins_amount,
+                ins_currency: data.ins_currency,
+                date_delivery: data.date_delivery,
+                date_source: data.date_source,
+                products: data.products,
+              });
+            })
+          );
+
+          const get_data: any = await Orders.findAll({});
+          const total_db_data = get_data.map((db_data: any) => {
+            return db_data.dataValues;
+          });
+
+          /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
+
+          const total_unfulfilled_data = total_db_data.filter(
+            (unfulfilled_data: any) =>
+              ORDER_STATUSES.includes(unfulfilled_data.status) &&
+              unfulfilled_data.status != ORDER_STATUS.FULFILLED
+          );
+
+          if (total_unfulfilled_data.length === 0) {
+            return res.status(200).json({});
+          } else if (total_unfulfilled_data.length > 0) {
+            orders_data = total_unfulfilled_data;
+            return res.status(200).json(total_unfulfilled_data);
+          }
+        }
+      } else {
+        await Promise.all(
+          custom_structure.map(async (data: any) => {
             const checking_existing_data = await Orders.create({
               order_id: data.order_id,
               carrier: data.carrier,
@@ -284,87 +356,27 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
               date_source: data.date_source,
               products: data.products,
             });
+          })
+        );
 
-            const get_data: any = await Orders.findAll({});
-            const total_db_data = get_data.map((db_data: any) => {
-              return db_data.dataValues;
-            });
-
-            /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
-
-            const total_unfulfilled_data = total_db_data.filter(
-              (unfulfilled_data: any) =>
-                ORDER_STATUSES.includes(unfulfilled_data.status) &&
-                unfulfilled_data.status != ORDER_STATUS.FULFILLED
-            );
-
-            if (total_unfulfilled_data.length === 0) {
-              res.status(200).json({});
-            } else if (total_unfulfilled_data.length > 0) {
-              res.status(200).json(total_unfulfilled_data);
-              orders_data = total_unfulfilled_data;
-            }
-          });
-        }
-      } else {
-        custom_structure.map(async (data: any) => {
-          const checking_existing_data = await Orders.create({
-            order_id: data.order_id,
-            carrier: data.carrier,
-            carrier_product: data.carrier_product,
-            carrier_branch_id: data.carrier_branch_id,
-            extra_branch_id: data.extra_branch_id,
-            send_address_id: data.send_address_id,
-            priority: data.priority,
-            status: data.status,
-            recipient_name: data.recipient_name,
-            recipient_contact: data.recipient_contact,
-            recipient_street: data.recipient_street,
-            recipient_city: data.recipient_city,
-            recipient_state: data.recipient_state,
-            recipient_zip: data.recipient_zip,
-            recipient_country_code: data.recipient_country_code,
-            recipient_phone: data.recipient_phone,
-            recipient_email: data.recipient_email,
-            weight: data.weight,
-            ic: data.ic,
-            dic: data.dic,
-            note: data.note,
-            driver_note: data.driver_note,
-            services: data.services,
-            ref: data.ref,
-            label: data.label,
-            barcode: data.barcode,
-            cod_vs: data.cod_vs,
-            cod_amount: data.cod_amount,
-            cod_currency: data.cod_currency,
-            cod_card_payment: data.cod_card_payment,
-            ins_amount: data.ins_amount,
-            ins_currency: data.ins_currency,
-            date_delivery: data.date_delivery,
-            date_source: data.date_source,
-            products: data.products,
-          });
-
-          const get_data: any = await Orders.findAll({});
-          const total_db_data = get_data.map((db_data: any) => {
-            return db_data.dataValues;
-          });
-
-          /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
-          const total_unfulfilled_data = total_db_data.filter(
-            (unfulfilled_data: any) =>
-              ORDER_STATUSES.includes(unfulfilled_data.status) &&
-              unfulfilled_data.status != ORDER_STATUS.FULFILLED
-          );
-
-          if (total_unfulfilled_data.length === 0) {
-            res.status(200).json({});
-          } else if (total_unfulfilled_data.length > 0) {
-            res.status(200).json(total_unfulfilled_data);
-            orders_data = total_unfulfilled_data;
-          }
+        const get_data: any = await Orders.findAll({});
+        const total_db_data = get_data.map((db_data: any) => {
+          return db_data.dataValues;
         });
+
+        /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
+        const total_unfulfilled_data = total_db_data.filter(
+          (unfulfilled_data: any) =>
+            ORDER_STATUSES.includes(unfulfilled_data.status) &&
+            unfulfilled_data.status != ORDER_STATUS.FULFILLED
+        );
+
+        if (total_unfulfilled_data.length === 0) {
+          return res.status(200).json({});
+        } else if (total_unfulfilled_data.length > 0) {
+          orders_data = total_unfulfilled_data;
+          return res.status(200).json(total_unfulfilled_data);
+        }
       }
     }
 
@@ -372,7 +384,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
     let order_ids: any = [];
     orders_data != undefined &&
       orders_data.map((order: any) => {
-        if (order.status != "TS_IN_PROGRESS") {
+        if (order.status != ORDER_STATUS.IN_PROGRESS) {
           return;
         }
         order_ids.push(order.order_id);
@@ -403,11 +415,11 @@ export const all_orders = async (req: Request, res: Response) => {
     });
 
     if (total_db_data.length === 0) {
-      res.status(400).json({
+      return res.status(200).json({
         message: `There are no orders data in the database.`,
       });
     } else {
-      res.status(200).json(get_data);
+      return res.status(200).json(get_data);
     }
   } catch (error) {
     console.error("Error all orders from database:", error);
