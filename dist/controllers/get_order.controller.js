@@ -127,7 +127,7 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                         recipient_zip: structure.shipping_address.zip.replace(" ", ""),
                         recipient_country_code: structure.shipping_address.country_code,
                         recipient_phone: structure.shipping_address.phone
-                            ? structure.shipping_address.phone.replaceAll(" ", "")
+                            ? structure.shipping_address.phone.replace(/ /g, "")
                             : null,
                         recipient_email: structure.customer.email,
                         weight: structure.total_weight

@@ -152,7 +152,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
             recipient_zip: structure.shipping_address.zip.replace(" ", ""),
             recipient_country_code: structure.shipping_address.country_code,
             recipient_phone: structure.shipping_address.phone
-              ? structure.shipping_address.phone.replaceAll(" ", "")
+              ? structure.shipping_address.phone.replace(/ /g, "")
               : null,
             recipient_email: structure.customer.email,
             weight: structure.total_weight
