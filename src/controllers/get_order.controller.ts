@@ -129,18 +129,28 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
             order_name = parseInt(structure.name);
           }
 
+          let carrier_product: any;
+          carrier_product =
+            CARRIERS.find((carrier) => carrier.name == s_l.title)
+              ?.carrier_product || "DR";
+
+          let branch_id: any;
+          if (carrier_product == "NB") {
+            branch_id = structure.note_attributes
+              .find((attr: any) => attr.name == "PickupPointId")
+              ?.value.substr(-5);
+          } else {
+            branch_id = structure.note_attributes.find(
+              (attr: any) => attr.name == "PickupPointId"
+            )?.value;
+          }
+
           const custom_schema = {
             order_id: structure.id,
             carrier: carrier,
-            carrier_product:
-              CARRIERS.find((carrier) => carrier.name == s_l.title)
-                ?.carrier_product || "DR",
-            carrier_branch_id: structure.note_attributes.find(
-              (attr: any) => attr.name == "PickupPointId"
-            )?.value,
-            extra_branch_id: structure.note_attributes.find(
-              (attr: any) => attr.name == "PickupPointId"
-            )?.value,
+            carrier_product: carrier_product,
+            carrier_branch_id: branch_id,
+            extra_branch_id: branch_id,
             send_address_id: send_address_id,
             priority: 4,
             status: ORDER_STATUS.IN_PROGRESS,

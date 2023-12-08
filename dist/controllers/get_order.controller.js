@@ -110,12 +110,23 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                     else {
                         order_name = parseInt(structure.name);
                     }
+                    let carrier_product;
+                    carrier_product =
+                        ((_b = constants_2.CARRIERS.find((carrier) => carrier.name == s_l.title)) === null || _b === void 0 ? void 0 : _b.carrier_product) || "DR";
+                    let branch_id;
+                    if (carrier_product == "NB") {
+                        branch_id = (_c = structure.note_attributes
+                            .find((attr) => attr.name == "PickupPointId")) === null || _c === void 0 ? void 0 : _c.value.substr(-5);
+                    }
+                    else {
+                        branch_id = (_d = structure.note_attributes.find((attr) => attr.name == "PickupPointId")) === null || _d === void 0 ? void 0 : _d.value;
+                    }
                     const custom_schema = {
                         order_id: structure.id,
                         carrier: carrier,
-                        carrier_product: ((_b = constants_2.CARRIERS.find((carrier) => carrier.name == s_l.title)) === null || _b === void 0 ? void 0 : _b.carrier_product) || "DR",
-                        carrier_branch_id: (_c = structure.note_attributes.find((attr) => attr.name == "PickupPointId")) === null || _c === void 0 ? void 0 : _c.value,
-                        extra_branch_id: (_d = structure.note_attributes.find((attr) => attr.name == "PickupPointId")) === null || _d === void 0 ? void 0 : _d.value,
+                        carrier_product: carrier_product,
+                        carrier_branch_id: branch_id,
+                        extra_branch_id: branch_id,
                         send_address_id: send_address_id,
                         priority: 4,
                         status: constants_2.ORDER_STATUS.IN_PROGRESS,
