@@ -172,7 +172,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
             dic: null,
             note: structure.note,
             driver_note: null,
-            services: [],
+            services: carrier == "cpost" ? ["S"] : [],
             ref: order_name,
             label: order_name,
             barcode: order_name,
