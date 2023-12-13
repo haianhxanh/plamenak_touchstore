@@ -115,7 +115,7 @@ Orders.init({
         allowNull: false,
     },
     cod_amount: {
-        type: sequelize_1.DataTypes.INTEGER,
+        type: sequelize_1.DataTypes.FLOAT,
         allowNull: true,
     },
     cod_currency: {

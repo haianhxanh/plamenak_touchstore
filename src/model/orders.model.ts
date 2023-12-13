@@ -165,7 +165,7 @@ Orders.init(
       allowNull: false,
     },
     cod_amount: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.FLOAT,
       allowNull: true,
     },
     cod_currency: {
