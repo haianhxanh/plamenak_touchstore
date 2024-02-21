@@ -64,50 +64,17 @@ export const send_order = async (req: Request, res: Response) => {
       }
     );
 
-    const { data } = await axios.get(
-      `https://${STORE}/admin/api/${API_VERSION}/orders/${valid_order_id}/fulfillment_orders.json`,
-      {
-        headers: {
-          "X-Shopify-Access-Token": ACCESS_TOKEN!,
-        },
-      }
-    );
-
-    data.fulfillment_orders.map(async (order: any) => {
-      const order_fullfilment_id = order.line_items[0].fulfillment_order_id;
-      const order_line_items = order.line_items.map((item: any) => {
-        return { id: item.id, quantity: item.quantity };
-      });
-
-      /*------------------------------------------------------CREATE FULFILLMENT---------------------------------------------------------------*/
-
-      const create_fulfillment = {
-        fulfillment: {
-          line_items_by_fulfillment_order: [
-            {
-              fulfillment_order_id: order_fullfilment_id,
-              fulfillment_order_line_items: order_line_items,
-            },
-          ],
-          notify_customer: true,
-          tracking_info: {
-            number: tracking_number,
-          },
-        },
-      };
-
-      const create_fulfillment_res: any = await axios.post(
-        `https://${STORE}/admin/api/${API_VERSION}/fulfillments.json`,
-        create_fulfillment,
+    try {
+      const { data } = await axios.get(
+        `https://${STORE}/admin/api/${API_VERSION}/orders/${valid_order_id}/fulfillment_orders.json`,
         {
           headers: {
             "X-Shopify-Access-Token": ACCESS_TOKEN!,
-            "Content-Type": "application/json",
           },
         }
       );
 
-      if (create_fulfillment_res.status === 201) {
+      if (data.fulfillment_orders[0].status == "closed") {
         /*--------------------------------UPDATE DATABASE---------------------------------------------*/
 
         const update_status = await Orders.update(
@@ -118,12 +85,72 @@ export const send_order = async (req: Request, res: Response) => {
             },
           }
         );
-      }
+        return res.status(400).json({
+          message: "Order was already fulfilled, database updated accordingly",
+        });
+      } else {
+        try {
+          data.fulfillment_orders.map(async (order: any) => {
+            const order_fullfilment_id =
+              order.line_items[0].fulfillment_order_id;
+            const order_line_items = order.line_items.map((item: any) => {
+              return { id: item.id, quantity: item.quantity };
+            });
 
-      res.status(200).json({
-        message: `Status for order with ID - ${valid_order_id} is now updated to FULFILLED`,
-      });
-    });
+            /*------------------------------------------------------CREATE FULFILLMENT---------------------------------------------------------------*/
+
+            const create_fulfillment = {
+              fulfillment: {
+                line_items_by_fulfillment_order: [
+                  {
+                    fulfillment_order_id: order_fullfilment_id,
+                    fulfillment_order_line_items: order_line_items,
+                  },
+                ],
+                notify_customer: true,
+                tracking_info: {
+                  number: tracking_number,
+                },
+              },
+            };
+
+            const create_fulfillment_res: any = await axios.post(
+              `https://${STORE}/admin/api/${API_VERSION}/fulfillments.json`,
+              create_fulfillment,
+              {
+                headers: {
+                  "X-Shopify-Access-Token": ACCESS_TOKEN!,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+
+            if (create_fulfillment_res.status === 201) {
+              /*--------------------------------UPDATE DATABASE---------------------------------------------*/
+
+              const update_status = await Orders.update(
+                { status: ORDER_STATUS.FULFILLED },
+                {
+                  where: {
+                    order_id: +valid_order_id,
+                  },
+                }
+              );
+            }
+
+            res.status(200).json({
+              message: `Status for order with ID - ${valid_order_id} is now updated to FULFILLED`,
+            });
+          });
+        } catch (error) {
+          console.error("Error mapping an order", error);
+          return res.status(500).json({ error: "Internal server error" });
+        }
+      }
+    } catch (error) {
+      console.error("Error getting unfulfilled order", error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
   } catch (error) {
     console.error("Error updating status for unfulfilled_orders:", error);
     return res.status(500).json({ error: "Internal server error" });

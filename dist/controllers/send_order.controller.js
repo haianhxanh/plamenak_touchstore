@@ -60,49 +60,74 @@ const send_order = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 "X-Shopify-Access-Token": ACCESS_TOKEN,
             },
         });
-        const { data } = yield axios_1.default.get(`https://${STORE}/admin/api/${API_VERSION}/orders/${valid_order_id}/fulfillment_orders.json`, {
-            headers: {
-                "X-Shopify-Access-Token": ACCESS_TOKEN,
-            },
-        });
-        data.fulfillment_orders.map((order) => __awaiter(void 0, void 0, void 0, function* () {
-            const order_fullfilment_id = order.line_items[0].fulfillment_order_id;
-            const order_line_items = order.line_items.map((item) => {
-                return { id: item.id, quantity: item.quantity };
-            });
-            /*------------------------------------------------------CREATE FULFILLMENT---------------------------------------------------------------*/
-            const create_fulfillment = {
-                fulfillment: {
-                    line_items_by_fulfillment_order: [
-                        {
-                            fulfillment_order_id: order_fullfilment_id,
-                            fulfillment_order_line_items: order_line_items,
-                        },
-                    ],
-                    notify_customer: true,
-                    tracking_info: {
-                        number: tracking_number,
-                    },
-                },
-            };
-            const create_fulfillment_res = yield axios_1.default.post(`https://${STORE}/admin/api/${API_VERSION}/fulfillments.json`, create_fulfillment, {
+        try {
+            const { data } = yield axios_1.default.get(`https://${STORE}/admin/api/${API_VERSION}/orders/${valid_order_id}/fulfillment_orders.json`, {
                 headers: {
                     "X-Shopify-Access-Token": ACCESS_TOKEN,
-                    "Content-Type": "application/json",
                 },
             });
-            if (create_fulfillment_res.status === 201) {
+            if (data.fulfillment_orders[0].status == "closed") {
                 /*--------------------------------UPDATE DATABASE---------------------------------------------*/
                 const update_status = yield orders_model_1.default.update({ status: constants_1.ORDER_STATUS.FULFILLED }, {
                     where: {
                         order_id: +valid_order_id,
                     },
                 });
+                return res.status(400).json({
+                    message: "Order was already fulfilled, database updated accordingly",
+                });
             }
-            res.status(200).json({
-                message: `Status for order with ID - ${valid_order_id} is now updated to FULFILLED`,
-            });
-        }));
+            else {
+                try {
+                    data.fulfillment_orders.map((order) => __awaiter(void 0, void 0, void 0, function* () {
+                        const order_fullfilment_id = order.line_items[0].fulfillment_order_id;
+                        const order_line_items = order.line_items.map((item) => {
+                            return { id: item.id, quantity: item.quantity };
+                        });
+                        /*------------------------------------------------------CREATE FULFILLMENT---------------------------------------------------------------*/
+                        const create_fulfillment = {
+                            fulfillment: {
+                                line_items_by_fulfillment_order: [
+                                    {
+                                        fulfillment_order_id: order_fullfilment_id,
+                                        fulfillment_order_line_items: order_line_items,
+                                    },
+                                ],
+                                notify_customer: true,
+                                tracking_info: {
+                                    number: tracking_number,
+                                },
+                            },
+                        };
+                        const create_fulfillment_res = yield axios_1.default.post(`https://${STORE}/admin/api/${API_VERSION}/fulfillments.json`, create_fulfillment, {
+                            headers: {
+                                "X-Shopify-Access-Token": ACCESS_TOKEN,
+                                "Content-Type": "application/json",
+                            },
+                        });
+                        if (create_fulfillment_res.status === 201) {
+                            /*--------------------------------UPDATE DATABASE---------------------------------------------*/
+                            const update_status = yield orders_model_1.default.update({ status: constants_1.ORDER_STATUS.FULFILLED }, {
+                                where: {
+                                    order_id: +valid_order_id,
+                                },
+                            });
+                        }
+                        res.status(200).json({
+                            message: `Status for order with ID - ${valid_order_id} is now updated to FULFILLED`,
+                        });
+                    }));
+                }
+                catch (error) {
+                    console.error("Error mapping an order", error);
+                    return res.status(500).json({ error: "Internal server error" });
+                }
+            }
+        }
+        catch (error) {
+            console.error("Error getting unfulfilled order", error);
+            return res.status(500).json({ error: "Internal server error" });
+        }
     }
     catch (error) {
         console.error("Error updating status for unfulfilled_orders:", error);
