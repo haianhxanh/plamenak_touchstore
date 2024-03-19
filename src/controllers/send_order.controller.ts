@@ -21,7 +21,7 @@ export const send_order = async (req: Request, res: Response) => {
       return res.status(400).json({ message: `order_id - ${error_message}` });
     }
     const valid_order_id = valid_input_order_id.value;
-    let tracking_number = req.body.consignments[0].track_ids[0];
+    // let tracking_number = req.body.consignments[0].track_ids[0];
 
     /*-----------UPDATING THE FULFILLMENT STATUS FOR ORDERS ON SHOPIFY----------------------*/
 
@@ -108,9 +108,9 @@ export const send_order = async (req: Request, res: Response) => {
                   },
                 ],
                 notify_customer: true,
-                tracking_info: {
-                  number: tracking_number,
-                },
+                // tracking_info: {
+                //   number: tracking_number,
+                // },
               },
             };
 

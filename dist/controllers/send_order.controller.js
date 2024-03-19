@@ -29,7 +29,7 @@ const send_order = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             return res.status(400).json({ message: `order_id - ${error_message}` });
         }
         const valid_order_id = valid_input_order_id.value;
-        let tracking_number = req.body.consignments[0].track_ids[0];
+        // let tracking_number = req.body.consignments[0].track_ids[0];
         /*-----------UPDATING THE FULFILLMENT STATUS FOR ORDERS ON SHOPIFY----------------------*/
         /*------------------Get list of fulfillment orders------------------------*/
         const order_tags = yield axios_1.default
@@ -94,9 +94,9 @@ const send_order = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                                     },
                                 ],
                                 notify_customer: true,
-                                tracking_info: {
-                                    number: tracking_number,
-                                },
+                                // tracking_info: {
+                                //   number: tracking_number,
+                                // },
                             },
                         };
                         const create_fulfillment_res = yield axios_1.default.post(`https://${STORE}/admin/api/${API_VERSION}/fulfillments.json`, create_fulfillment, {
