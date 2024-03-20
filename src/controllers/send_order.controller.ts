@@ -12,15 +12,11 @@ export const send_order = async (req: Request, res: Response) => {
   try {
     /*------------------VALIDATING THE NEEDED INPUT DATA FOR THE PROGRAM-------------------------*/
 
-    let valid_input_order_id = validate_order_id.validate(
-      req.body.consignments[0].order_id
-    );
-
-    if (valid_input_order_id.error) {
-      const error_message = valid_input_order_id.error.details[0].message;
-      return res.status(400).json({ message: `order_id - ${error_message}` });
+    if (!req.body.consignments[0].order_id) {
+      return res.status(400).json({ message: "Order_id is required" });
     }
-    const valid_order_id = valid_input_order_id.value;
+
+    const valid_order_id = req.body.consignments[0].order_id;
     // let tracking_number = req.body.consignments[0].track_ids[0];
 
     /*-----------UPDATING THE FULFILLMENT STATUS FOR ORDERS ON SHOPIFY----------------------*/

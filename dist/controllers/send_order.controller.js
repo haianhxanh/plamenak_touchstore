@@ -16,19 +16,16 @@ exports.send_order = void 0;
 const axios_1 = __importDefault(require("axios"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const orders_model_1 = __importDefault(require("../model/orders.model"));
-const input_validation_1 = require("../utilities/input_validation");
 const constants_1 = require("../utilities/constants");
 dotenv_1.default.config();
 const { ACCESS_TOKEN, STORE, API_VERSION } = process.env;
 const send_order = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         /*------------------VALIDATING THE NEEDED INPUT DATA FOR THE PROGRAM-------------------------*/
-        let valid_input_order_id = input_validation_1.validate_order_id.validate(req.body.consignments[0].order_id);
-        if (valid_input_order_id.error) {
-            const error_message = valid_input_order_id.error.details[0].message;
-            return res.status(400).json({ message: `order_id - ${error_message}` });
+        if (!req.body.consignments[0].order_id) {
+            return res.status(400).json({ message: "Order_id is required" });
         }
-        const valid_order_id = valid_input_order_id.value;
+        const valid_order_id = req.body.consignments[0].order_id;
         // let tracking_number = req.body.consignments[0].track_ids[0];
         /*-----------UPDATING THE FULFILLMENT STATUS FOR ORDERS ON SHOPIFY----------------------*/
         /*------------------Get list of fulfillment orders------------------------*/
