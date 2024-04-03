@@ -19,24 +19,19 @@ export const UNFULFILLED_ORDER_STATUS = {
 
 export const CARRIERS = [
   {
-    name: "Doručení na adresu - GLS",
-    carrier: "gls",
-    carrier_product: "business",
-  },
-  {
-    name: "Doručenie na adresu - GLS",
-    carrier: "gls-sk",
-    carrier_product: "business",
-  },
-  {
-    name: "Balíkovna - Výdejní místo vyberete po dokončení objednávky",
+    name: "Balíkovna",
     carrier: "cpost",
     carrier_product: "NB",
   },
   {
-    name: "Česká Pošta - Doručení na adresu (Balík do ruky)",
+    name: "Česká Pošta - Doručení na adresu",
     carrier: "cpost",
     carrier_product: "DR",
+  },
+  {
+    name: "Zásilkovna",
+    carrier: "zasilkovna",
+    carrier_product: "place",
   },
   {
     name: "Zásilkovna - Pobočku vyberete po dokončení objednávky",
