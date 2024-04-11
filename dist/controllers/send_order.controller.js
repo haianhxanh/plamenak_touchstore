@@ -27,36 +27,6 @@ const send_order = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const consignments = req.body.consignments;
         const internal_fullfillment_response = [];
         for (const consignment of consignments) {
-            const order_tags = yield axios_1.default
-                .get(`https://${STORE}/admin/api/${API_VERSION}/orders/${consignment.order_id}.json`, {
-                headers: {
-                    "X-Shopify-Access-Token": ACCESS_TOKEN,
-                },
-            })
-                .then((response) => {
-                let order_tags = response.data.order.tags;
-                let order_tags_arr = order_tags.split(",");
-                order_tags_arr.forEach((tag, i) => {
-                    if (tag.includes("TS_")) {
-                        order_tags_arr[i] = constants_1.ORDER_STATUS.FULFILLED;
-                    }
-                });
-                order_tags = order_tags_arr.toString();
-                return order_tags;
-            });
-            const body = {
-                order: {
-                    id: consignment.order_id,
-                    tags: order_tags,
-                },
-            };
-            yield sleep(500);
-            axios_1.default.put(`https://${STORE}/admin/api/${API_VERSION}/orders/${consignment.order_id}.json`, body, {
-                headers: {
-                    "X-Shopify-Access-Token": ACCESS_TOKEN,
-                },
-            });
-            yield sleep(500);
             try {
                 const { data } = yield axios_1.default.get(`https://${STORE}/admin/api/${API_VERSION}/orders/${consignment.order_id}/fulfillment_orders.json`, {
                     headers: {
@@ -100,7 +70,6 @@ const send_order = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                                     },
                                 },
                             };
-                            yield sleep(500);
                             const create_fulfillment_res = yield axios_1.default.post(`https://${STORE}/admin/api/${API_VERSION}/fulfillments.json`, create_fulfillment, {
                                 headers: {
                                     "X-Shopify-Access-Token": ACCESS_TOKEN,
@@ -108,32 +77,30 @@ const send_order = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                                 },
                             });
                             if (create_fulfillment_res.status === 201) {
-                                /*--------------------------------UPDATE DATABASE---------------------------------------------*/
+                                /*----------------------UPDATE DATABASE--------------------*/
+                                internal_fullfillment_response.push({
+                                    order_id: consignment.order_id,
+                                    status: "Order fulfilled",
+                                });
                                 const update_status = yield orders_model_1.default.update({ status: constants_1.ORDER_STATUS.FULFILLED }, {
                                     where: {
                                         order_id: +consignment.order_id,
                                     },
                                 });
                             }
-                            internal_fullfillment_response.push({
-                                order_id: consignment.order_id,
-                                status: "Order fulfilled",
-                            });
                         }));
                     }
                     catch (error) {
                         console.error("Error mapping an order", error);
-                        return res.status(500).json({ error: "Internal server error" });
                     }
                 }
             }
             catch (error) {
                 console.error("Error getting unfulfilled order", error);
-                return res.status(500).json({ error: "Internal server error" });
             }
             yield sleep(500);
         }
-        res.status(200).json(internal_fullfillment_response);
+        return res.status(200).json(internal_fullfillment_response);
     }
     catch (error) {
         console.error("Error updating status for unfulfilled_orders:", error);

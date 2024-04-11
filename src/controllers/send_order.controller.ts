@@ -23,48 +23,6 @@ export const send_order = async (req: Request, res: Response) => {
     const internal_fullfillment_response = [] as InternalFulfillmentResponse[];
 
     for (const consignment of consignments) {
-      const order_tags = await axios
-        .get(
-          `https://${STORE}/admin/api/${API_VERSION}/orders/${consignment.order_id}.json`,
-          {
-            headers: {
-              "X-Shopify-Access-Token": ACCESS_TOKEN!,
-            },
-          }
-        )
-        .then((response) => {
-          let order_tags = response.data.order.tags;
-          let order_tags_arr = order_tags.split(",");
-          order_tags_arr.forEach((tag: any, i: any) => {
-            if (tag.includes("TS_")) {
-              order_tags_arr[i] = ORDER_STATUS.FULFILLED;
-            }
-          });
-          order_tags = order_tags_arr.toString();
-          return order_tags;
-        });
-
-      const body = {
-        order: {
-          id: consignment.order_id,
-          tags: order_tags,
-        },
-      };
-
-      await sleep(500);
-
-      axios.put(
-        `https://${STORE}/admin/api/${API_VERSION}/orders/${consignment.order_id}.json`,
-        body,
-        {
-          headers: {
-            "X-Shopify-Access-Token": ACCESS_TOKEN!,
-          },
-        }
-      );
-
-      await sleep(500);
-
       try {
         const { data } = await axios.get(
           `https://${STORE}/admin/api/${API_VERSION}/orders/${consignment.order_id}/fulfillment_orders.json`,
@@ -123,8 +81,6 @@ export const send_order = async (req: Request, res: Response) => {
                 },
               };
 
-              await sleep(500);
-
               const create_fulfillment_res: any = await axios.post(
                 `https://${STORE}/admin/api/${API_VERSION}/fulfillments.json`,
                 create_fulfillment,
@@ -137,7 +93,12 @@ export const send_order = async (req: Request, res: Response) => {
               );
 
               if (create_fulfillment_res.status === 201) {
-                /*--------------------------------UPDATE DATABASE---------------------------------------------*/
+                /*----------------------UPDATE DATABASE--------------------*/
+
+                internal_fullfillment_response.push({
+                  order_id: consignment.order_id,
+                  status: "Order fulfilled",
+                });
 
                 const update_status = await Orders.update(
                   { status: ORDER_STATUS.FULFILLED },
@@ -148,24 +109,18 @@ export const send_order = async (req: Request, res: Response) => {
                   }
                 );
               }
-
-              internal_fullfillment_response.push({
-                order_id: consignment.order_id,
-                status: "Order fulfilled",
-              });
             });
           } catch (error) {
             console.error("Error mapping an order", error);
-            return res.status(500).json({ error: "Internal server error" });
           }
         }
       } catch (error) {
         console.error("Error getting unfulfilled order", error);
-        return res.status(500).json({ error: "Internal server error" });
       }
       await sleep(500);
     }
-    res.status(200).json(internal_fullfillment_response);
+
+    return res.status(200).json(internal_fullfillment_response);
   } catch (error) {
     console.error("Error updating status for unfulfilled_orders:", error);
     return res.status(500).json({ error: "Internal server error" });
