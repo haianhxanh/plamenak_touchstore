@@ -53,9 +53,10 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                 return db_data.dataValues;
             });
             const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => ORDER_STATUSES.includes(unfulfilled_data.status) &&
-                unfulfilled_data.status != constants_2.ORDER_STATUS.FULFILLED);
+                unfulfilled_data.status != constants_2.ORDER_STATUS.FULFILLED &&
+                unfulfilled_data.status != constants_2.ORDER_STATUS.DOWNLOADED);
             if (total_unfulfilled_data.length === 0) {
-                return res.status(200).json({});
+                return res.status(200).json([]);
             }
             else {
                 orders_data = total_unfulfilled_data;
@@ -218,9 +219,10 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                     });
                     /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
                     const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => ORDER_STATUSES.includes(unfulfilled_data.status) &&
-                        unfulfilled_data.status != constants_2.ORDER_STATUS.FULFILLED);
+                        unfulfilled_data.status != constants_2.ORDER_STATUS.FULFILLED &&
+                        unfulfilled_data.status != constants_2.ORDER_STATUS.DOWNLOADED);
                     if (total_unfulfilled_data.length === 0) {
-                        return res.status(200).json({});
+                        return res.status(200).json([]);
                     }
                     else if (total_unfulfilled_data.length > 0) {
                         orders_data = total_unfulfilled_data;
@@ -274,9 +276,10 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                     });
                     /*-----------GETTING ONLY UNFULFILLED STATUS ORDERS AND IN_PROGRESS STATUS ORDERS TO CARRIER PROVIDER------------*/
                     const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => ORDER_STATUSES.includes(unfulfilled_data.status) &&
-                        unfulfilled_data.status != constants_2.ORDER_STATUS.FULFILLED);
+                        unfulfilled_data.status != constants_2.ORDER_STATUS.FULFILLED &&
+                        unfulfilled_data.status != constants_2.ORDER_STATUS.DOWNLOADED);
                     if (total_unfulfilled_data.length === 0) {
-                        return res.status(200).json({});
+                        return res.status(200).json([]);
                     }
                     else if (total_unfulfilled_data.length > 0) {
                         orders_data = total_unfulfilled_data;
@@ -333,7 +336,7 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                 const total_unfulfilled_data = total_db_data.filter((unfulfilled_data) => ORDER_STATUSES.includes(unfulfilled_data.status) &&
                     unfulfilled_data.status != constants_2.ORDER_STATUS.FULFILLED);
                 if (total_unfulfilled_data.length === 0) {
-                    return res.status(200).json({});
+                    return res.status(200).json([]);
                 }
                 else if (total_unfulfilled_data.length > 0) {
                     orders_data = total_unfulfilled_data;

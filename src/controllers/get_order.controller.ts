@@ -64,11 +64,12 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
       const total_unfulfilled_data = total_db_data.filter(
         (unfulfilled_data: any) =>
           ORDER_STATUSES.includes(unfulfilled_data.status) &&
-          unfulfilled_data.status != ORDER_STATUS.FULFILLED
+          unfulfilled_data.status != ORDER_STATUS.FULFILLED &&
+          unfulfilled_data.status != ORDER_STATUS.DOWNLOADED
       );
 
       if (total_unfulfilled_data.length === 0) {
-        return res.status(200).json({});
+        return res.status(200).json([]);
       } else {
         orders_data = total_unfulfilled_data;
         tagOrdersAsDownloaded();
@@ -255,11 +256,12 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
           const total_unfulfilled_data = total_db_data.filter(
             (unfulfilled_data: any) =>
               ORDER_STATUSES.includes(unfulfilled_data.status) &&
-              unfulfilled_data.status != ORDER_STATUS.FULFILLED
+              unfulfilled_data.status != ORDER_STATUS.FULFILLED &&
+              unfulfilled_data.status != ORDER_STATUS.DOWNLOADED
           );
 
           if (total_unfulfilled_data.length === 0) {
-            return res.status(200).json({});
+            return res.status(200).json([]);
           } else if (total_unfulfilled_data.length > 0) {
             orders_data = total_unfulfilled_data;
             tagOrdersAsDownloaded();
@@ -318,11 +320,12 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
           const total_unfulfilled_data = total_db_data.filter(
             (unfulfilled_data: any) =>
               ORDER_STATUSES.includes(unfulfilled_data.status) &&
-              unfulfilled_data.status != ORDER_STATUS.FULFILLED
+              unfulfilled_data.status != ORDER_STATUS.FULFILLED &&
+              unfulfilled_data.status != ORDER_STATUS.DOWNLOADED
           );
 
           if (total_unfulfilled_data.length === 0) {
-            return res.status(200).json({});
+            return res.status(200).json([]);
           } else if (total_unfulfilled_data.length > 0) {
             orders_data = total_unfulfilled_data;
             tagOrdersAsDownloaded();
@@ -385,7 +388,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
         );
 
         if (total_unfulfilled_data.length === 0) {
-          return res.status(200).json({});
+          return res.status(200).json([]);
         } else if (total_unfulfilled_data.length > 0) {
           orders_data = total_unfulfilled_data;
           tagOrdersAsDownloaded();
