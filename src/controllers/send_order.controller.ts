@@ -15,12 +15,12 @@ type InternalFulfillmentResponse = {
 };
 
 export const send_order = async (req: Request, res: Response) => {
+  const internal_fullfillment_response = [] as InternalFulfillmentResponse[];
+
   try {
     /*------------------VALIDATING THE NEEDED INPUT DATA FOR THE PROGRAM-------------------------*/
 
     const consignments = req.body.consignments;
-
-    const internal_fullfillment_response = [] as InternalFulfillmentResponse[];
 
     for (const consignment of consignments) {
       try {
@@ -119,7 +119,10 @@ export const send_order = async (req: Request, res: Response) => {
       }
       await sleep(500);
     }
-
+    console.log(
+      "internal_fullfillment_response",
+      internal_fullfillment_response
+    );
     return res.status(200).json(internal_fullfillment_response);
   } catch (error) {
     console.error("Error updating status for unfulfilled_orders:", error);

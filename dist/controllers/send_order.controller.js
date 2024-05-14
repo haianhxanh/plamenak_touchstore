@@ -22,10 +22,10 @@ const sleep = (0, util_1.promisify)(setTimeout);
 dotenv_1.default.config();
 const { ACCESS_TOKEN, STORE, API_VERSION } = process.env;
 const send_order = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const internal_fullfillment_response = [];
     try {
         /*------------------VALIDATING THE NEEDED INPUT DATA FOR THE PROGRAM-------------------------*/
         const consignments = req.body.consignments;
-        const internal_fullfillment_response = [];
         for (const consignment of consignments) {
             try {
                 const { data } = yield axios_1.default.get(`https://${STORE}/admin/api/${API_VERSION}/orders/${consignment.order_id}/fulfillment_orders.json`, {
@@ -100,6 +100,7 @@ const send_order = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             }
             yield sleep(500);
         }
+        console.log("internal_fullfillment_response", internal_fullfillment_response);
         return res.status(200).json(internal_fullfillment_response);
     }
     catch (error) {
