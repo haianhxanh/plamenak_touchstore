@@ -27,7 +27,7 @@ export const CARRIERS = [
       "https://www.postaonline.cz/en/trackandtrace/-/zasilka/cislo?parcelNumbers=",
   },
   {
-    name: "Česká Pošta - Doručení na adresu",
+    name: "Česká Pošta",
     carrier: "cpost",
     carrier_product: "DR",
     carrier_product_name: "Česká Pošta",
@@ -36,13 +36,6 @@ export const CARRIERS = [
   },
   {
     name: "Zásilkovna",
-    carrier: "zasilkovna",
-    carrier_product: "place",
-    carrier_product_name: "Zásilkovna",
-    tracking_url: "https://tracking.packeta.com/cs_CZ/?id=",
-  },
-  {
-    name: "Zásilkovna - Pobočku vyberete po dokončení objednávky",
     carrier: "zasilkovna",
     carrier_product: "place",
     carrier_product_name: "Zásilkovna",

@@ -91,8 +91,7 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                     else {
                         cash_on_delivery_amount = 0;
                     }
-                    let carrier = ((_a = constants_2.CARRIERS.find((carrier) => carrier.name == s_l.title)) === null || _a === void 0 ? void 0 : _a.carrier) ||
-                        "cpost";
+                    let carrier = ((_a = constants_2.CARRIERS.find((carrier) => s_l.title.includes(carrier.name))) === null || _a === void 0 ? void 0 : _a.carrier) || "cpost";
                     let send_address_id;
                     switch (carrier) {
                         case "cpost":
@@ -113,7 +112,7 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                     }
                     let carrier_product;
                     carrier_product =
-                        ((_b = constants_2.CARRIERS.find((carrier) => carrier.name == s_l.title)) === null || _b === void 0 ? void 0 : _b.carrier_product) || "DR";
+                        ((_b = constants_2.CARRIERS.find((carrier) => s_l.title.includes(carrier.name))) === null || _b === void 0 ? void 0 : _b.carrier_product) || "DR";
                     let branch_id;
                     if (carrier_product == "NB") {
                         branch_id = (_c = structure.note_attributes

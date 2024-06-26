@@ -108,8 +108,8 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
           }
 
           let carrier: any =
-            CARRIERS.find((carrier) => carrier.name == s_l.title)?.carrier ||
-            "cpost";
+            CARRIERS.find((carrier) => s_l.title.includes(carrier.name))
+              ?.carrier || "cpost";
 
           let send_address_id: any;
           switch (carrier) {
@@ -132,7 +132,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
 
           let carrier_product: any;
           carrier_product =
-            CARRIERS.find((carrier) => carrier.name == s_l.title)
+            CARRIERS.find((carrier) => s_l.title.includes(carrier.name))
               ?.carrier_product || "DR";
 
           let branch_id: any;
