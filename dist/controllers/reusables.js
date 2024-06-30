@@ -90,19 +90,20 @@ const fetch_orders = () => __awaiter(void 0, void 0, void 0, function* () {
             "X-Shopify-Access-Token": ACCESS_TOKEN,
         },
     });
-    console.log("unfulfilled orders", data.data.orders.edges.length);
     if (!data.data.orders.edges.length)
         return [];
     let orders = [];
     for (const [index, order] of data.data.orders.edges.entries()) {
-        if (order.node.displayFinancialStatus != constants_1.PAYMENT_STATUSES.PAID) {
-            // if not paid, only allow those with COD
-            if ((_a = order.node.paymentGatewayNames[0]) === null || _a === void 0 ? void 0 : _a.toLowerCase().includes(constants_1.PAYMENTS.CASH_ON_DELIVERY.toLowerCase())) {
+        if (parseInt(order.node.totalWeight) <= 29000) {
+            if (order.node.displayFinancialStatus != constants_1.PAYMENT_STATUSES.PAID) {
+                // if not paid, only allow those with COD
+                if ((_a = order.node.paymentGatewayNames[0]) === null || _a === void 0 ? void 0 : _a.includes(constants_1.PAYMENTS.CASH_ON_DELIVERY)) {
+                    orders.push(order);
+                }
+            }
+            else {
                 orders.push(order);
             }
-        }
-        else {
-            orders.push(order);
         }
     }
     return orders;

@@ -81,24 +81,22 @@ export const fetch_orders = async () => {
     }
   );
 
-  console.log("unfulfilled orders", data.data.orders.edges.length);
-
   if (!data.data.orders.edges.length) return [];
 
   let orders: any = [];
 
   for (const [index, order] of data.data.orders.edges.entries()) {
-    if (order.node.displayFinancialStatus != PAYMENT_STATUSES.PAID) {
-      // if not paid, only allow those with COD
-      if (
-        order.node.paymentGatewayNames[0]
-          ?.toLowerCase()
-          .includes(PAYMENTS.CASH_ON_DELIVERY.toLowerCase())
-      ) {
+    if (parseInt(order.node.totalWeight) <= 29000) {
+      if (order.node.displayFinancialStatus != PAYMENT_STATUSES.PAID) {
+        // if not paid, only allow those with COD
+        if (
+          order.node.paymentGatewayNames[0]?.includes(PAYMENTS.CASH_ON_DELIVERY)
+        ) {
+          orders.push(order);
+        }
+      } else {
         orders.push(order);
       }
-    } else {
-      orders.push(order);
     }
   }
   return orders;
