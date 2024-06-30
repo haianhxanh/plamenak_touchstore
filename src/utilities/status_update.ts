@@ -1,18 +1,24 @@
-import express, { Request, Response } from "express";
 import axios from "axios";
 import dotenv from "dotenv";
 import Orders from "../model/orders.model";
-import {
-  validate_order_id,
-  validate_order_status,
-} from "../utilities/input_validation";
 import { ORDER_STATUS } from "../utilities/constants";
+import { promisify } from "util";
+const sleep = promisify(setTimeout);
 
 dotenv.config();
 
 const { ACCESS_TOKEN, STORE, API_VERSION } = process.env;
 
 export const status_update = async (order_id: string, status: string) => {
+  // check if order record exists
+  const order = await Orders.findOne({
+    where: {
+      order_id: order_id,
+    },
+  });
+  if (!order) {
+    return;
+  }
   // update database
   const update_status = await Orders.update(
     { status: status },
@@ -34,10 +40,15 @@ export const status_update = async (order_id: string, status: string) => {
       let order_tags = response.data.order.tags;
       let order_tags_arr = order_tags.split(",");
       order_tags_arr.forEach((tag: any, i: any) => {
-        if (tag.includes("TS_")) {
+        if (tag.includes("TS_") && tag !== ORDER_STATUS.ERROR) {
           order_tags_arr[i] = status;
+        } else {
+          order_tags_arr.push(status);
         }
       });
+      order_tags_arr = order_tags_arr.filter(
+        (tag: any) => tag !== ORDER_STATUS.FORCE_SEND
+      );
       order_tags = order_tags_arr.toString();
       return order_tags;
     });
@@ -90,10 +101,17 @@ export const error_status_update = async (
       let order_attributes = response.data.order.note_attributes;
       let order_tags_arr = order_tags.split(",");
       order_tags_arr.forEach((tag: any, i: any) => {
-        if (tag.includes("TS_")) {
-          order_tags_arr[i] = status;
+        if (status == ORDER_STATUS.ERROR) {
+          order_tags_arr.push(status);
+        } else {
+          if (tag.includes("TS_") && tag !== ORDER_STATUS.ERROR) {
+            order_tags_arr[i] = status;
+          }
         }
       });
+      order_tags_arr = order_tags_arr.filter(
+        (tag: any) => tag !== ORDER_STATUS.FORCE_SEND
+      );
       order_tags = order_tags_arr.toString();
       return [order_tags, order_attributes];
     });
@@ -110,6 +128,8 @@ export const error_status_update = async (
       note_attributes: order_attributes,
     },
   };
+
+  await sleep(1000);
 
   const { data } = await axios.put(
     `https://${STORE}/admin/api/${API_VERSION}/orders/${order_id}.json`,

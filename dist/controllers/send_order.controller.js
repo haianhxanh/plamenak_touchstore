@@ -22,7 +22,7 @@ const sleep = (0, util_1.promisify)(setTimeout);
 dotenv_1.default.config();
 const { ACCESS_TOKEN, STORE, API_VERSION } = process.env;
 const send_order = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const internal_fullfillment_response = [];
+    let internal_fullfillment_response = [];
     try {
         /*------------------VALIDATING THE NEEDED INPUT DATA FOR THE PROGRAM-------------------------*/
         const consignments = req.body.consignments;
@@ -52,8 +52,8 @@ const send_order = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                             const order_line_items = order.line_items.map((item) => {
                                 return { id: item.id, quantity: item.quantity };
                             });
-                            /*------------------------------------------------------CREATE FULFILLMENT---------------------------------------------------------------*/
-                            const carrier = constants_1.CARRIERS.find((carrier) => carrier.carrier_product == consignment.product);
+                            /*----------------------------CREATE FULFILLMENT-------------------------------*/
+                            const carrier = constants_1.CARRIERS.find((carrier) => carrier.product == consignment.product);
                             const create_fulfillment = {
                                 fulfillment: {
                                     line_items_by_fulfillment_order: [
@@ -64,8 +64,8 @@ const send_order = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                                     ],
                                     notify_customer: true,
                                     tracking_info: {
-                                        company: (carrier === null || carrier === void 0 ? void 0 : carrier.carrier_product_name) || "",
-                                        number: consignment.track_ids[0] || "",
+                                        company: (carrier === null || carrier === void 0 ? void 0 : carrier.name) || "Dopravce",
+                                        number: consignment.track_ids[0],
                                         url: (carrier === null || carrier === void 0 ? void 0 : carrier.tracking_url) + consignment.track_ids[0] || "",
                                     },
                                 },
@@ -77,7 +77,7 @@ const send_order = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                                 },
                             });
                             if (create_fulfillment_res.status === 201) {
-                                /*----------------------UPDATE DATABASE--------------------*/
+                                /*------------------------UPDATE DATABASE------------------------*/
                                 internal_fullfillment_response.push({
                                     order_id: consignment.order_id,
                                     status: "Order fulfilled",
@@ -98,9 +98,8 @@ const send_order = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             catch (error) {
                 console.error("Error getting unfulfilled order", error);
             }
-            yield sleep(500);
+            yield sleep(1000);
         }
-        console.log("internal_fullfillment_response", internal_fullfillment_response);
         return res.status(200).json(internal_fullfillment_response);
     }
     catch (error) {

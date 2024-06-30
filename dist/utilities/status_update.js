@@ -16,9 +16,21 @@ exports.error_status_update = exports.status_update = void 0;
 const axios_1 = __importDefault(require("axios"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const orders_model_1 = __importDefault(require("../model/orders.model"));
+const constants_1 = require("../utilities/constants");
+const util_1 = require("util");
+const sleep = (0, util_1.promisify)(setTimeout);
 dotenv_1.default.config();
 const { ACCESS_TOKEN, STORE, API_VERSION } = process.env;
 const status_update = (order_id, status) => __awaiter(void 0, void 0, void 0, function* () {
+    // check if order record exists
+    const order = yield orders_model_1.default.findOne({
+        where: {
+            order_id: order_id,
+        },
+    });
+    if (!order) {
+        return;
+    }
     // update database
     const update_status = yield orders_model_1.default.update({ status: status }, {
         where: {
@@ -36,10 +48,14 @@ const status_update = (order_id, status) => __awaiter(void 0, void 0, void 0, fu
         let order_tags = response.data.order.tags;
         let order_tags_arr = order_tags.split(",");
         order_tags_arr.forEach((tag, i) => {
-            if (tag.includes("TS_")) {
+            if (tag.includes("TS_") && tag !== constants_1.ORDER_STATUS.ERROR) {
                 order_tags_arr[i] = status;
             }
+            else {
+                order_tags_arr.push(status);
+            }
         });
+        order_tags_arr = order_tags_arr.filter((tag) => tag !== constants_1.ORDER_STATUS.FORCE_SEND);
         order_tags = order_tags_arr.toString();
         return order_tags;
     });
@@ -75,10 +91,16 @@ const error_status_update = (order_id, status, error_id, error_name, error_note)
         let order_attributes = response.data.order.note_attributes;
         let order_tags_arr = order_tags.split(",");
         order_tags_arr.forEach((tag, i) => {
-            if (tag.includes("TS_")) {
-                order_tags_arr[i] = status;
+            if (status == constants_1.ORDER_STATUS.ERROR) {
+                order_tags_arr.push(status);
+            }
+            else {
+                if (tag.includes("TS_") && tag !== constants_1.ORDER_STATUS.ERROR) {
+                    order_tags_arr[i] = status;
+                }
             }
         });
+        order_tags_arr = order_tags_arr.filter((tag) => tag !== constants_1.ORDER_STATUS.FORCE_SEND);
         order_tags = order_tags_arr.toString();
         return [order_tags, order_attributes];
     });
@@ -93,6 +115,7 @@ const error_status_update = (order_id, status, error_id, error_name, error_note)
             note_attributes: order_attributes,
         },
     };
+    yield sleep(1000);
     const { data } = yield axios_1.default.put(`https://${STORE}/admin/api/${API_VERSION}/orders/${order_id}.json`, body, {
         headers: {
             "X-Shopify-Access-Token": ACCESS_TOKEN,

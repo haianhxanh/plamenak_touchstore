@@ -1,8 +1,7 @@
-import express, { Request, Response } from "express";
+import { Request, Response } from "express";
 import axios from "axios";
 import dotenv from "dotenv";
 import Orders from "../model/orders.model";
-import { validate_order_id } from "../utilities/input_validation";
 import { CARRIERS, ORDER_STATUS } from "../utilities/constants";
 import { promisify } from "util";
 const sleep = promisify(setTimeout);
@@ -15,8 +14,7 @@ type InternalFulfillmentResponse = {
 };
 
 export const send_order = async (req: Request, res: Response) => {
-  const internal_fullfillment_response = [] as InternalFulfillmentResponse[];
-
+  let internal_fullfillment_response = [] as InternalFulfillmentResponse[];
   try {
     /*------------------VALIDATING THE NEEDED INPUT DATA FOR THE PROGRAM-------------------------*/
 
@@ -58,10 +56,10 @@ export const send_order = async (req: Request, res: Response) => {
                 return { id: item.id, quantity: item.quantity };
               });
 
-              /*------------------------------------------------------CREATE FULFILLMENT---------------------------------------------------------------*/
+              /*----------------------------CREATE FULFILLMENT-------------------------------*/
 
               const carrier = CARRIERS.find(
-                (carrier) => carrier.carrier_product == consignment.product
+                (carrier) => carrier.product == consignment.product
               );
 
               const create_fulfillment = {
@@ -74,8 +72,8 @@ export const send_order = async (req: Request, res: Response) => {
                   ],
                   notify_customer: true,
                   tracking_info: {
-                    company: carrier?.carrier_product_name || "",
-                    number: consignment.track_ids[0] || "",
+                    company: carrier?.name || "Dopravce",
+                    number: consignment.track_ids[0],
                     url: carrier?.tracking_url + consignment.track_ids[0] || "",
                   },
                 },
@@ -93,8 +91,7 @@ export const send_order = async (req: Request, res: Response) => {
               );
 
               if (create_fulfillment_res.status === 201) {
-                /*----------------------UPDATE DATABASE--------------------*/
-
+                /*------------------------UPDATE DATABASE------------------------*/
                 internal_fullfillment_response.push({
                   order_id: consignment.order_id,
                   status: "Order fulfilled",
@@ -117,12 +114,8 @@ export const send_order = async (req: Request, res: Response) => {
       } catch (error) {
         console.error("Error getting unfulfilled order", error);
       }
-      await sleep(500);
+      await sleep(1000);
     }
-    console.log(
-      "internal_fullfillment_response",
-      internal_fullfillment_response
-    );
     return res.status(200).json(internal_fullfillment_response);
   } catch (error) {
     console.error("Error updating status for unfulfilled_orders:", error);
