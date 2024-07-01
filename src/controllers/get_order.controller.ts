@@ -120,11 +120,11 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
         let branch_id: any;
         if (carrier?.product == "NB") {
           branch_id = structure.node.customAttributes
-            .find((attr: any) => attr.name == "PickupPointId")
+            .find((attr: any) => attr.key == "PickupPointId")
             ?.value.substr(-5);
         } else {
           branch_id = structure.node.customAttributes.find(
-            (attr: any) => attr.name == "PickupPointId"
+            (attr: any) => attr.key == "PickupPointId"
           )?.value;
         }
 

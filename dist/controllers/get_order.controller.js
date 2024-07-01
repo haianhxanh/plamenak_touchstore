@@ -105,10 +105,10 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                 let branch_id;
                 if ((carrier === null || carrier === void 0 ? void 0 : carrier.product) == "NB") {
                     branch_id = (_b = structure.node.customAttributes
-                        .find((attr) => attr.name == "PickupPointId")) === null || _b === void 0 ? void 0 : _b.value.substr(-5);
+                        .find((attr) => attr.key == "PickupPointId")) === null || _b === void 0 ? void 0 : _b.value.substr(-5);
                 }
                 else {
-                    branch_id = (_c = structure.node.customAttributes.find((attr) => attr.name == "PickupPointId")) === null || _c === void 0 ? void 0 : _c.value;
+                    branch_id = (_c = structure.node.customAttributes.find((attr) => attr.key == "PickupPointId")) === null || _c === void 0 ? void 0 : _c.value;
                 }
                 const custom_schema = {
                     order_id: structure.node.id.replace("gid://shopify/Order/", ""),
