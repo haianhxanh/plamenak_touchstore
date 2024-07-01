@@ -132,7 +132,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
           order_id: structure.node.id.replace("gid://shopify/Order/", ""),
           carrier: carrier?.ts_name,
           carrier_product: carrier_product,
-          carrier_branch_id: branch_id,
+          carrier_branch_id: branch_id !== "" ? branch_id : null,
           extra_branch_id: branch_id,
           send_address_id: send_address_id,
           priority: 4,
@@ -171,7 +171,13 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
           date_source: new Date().toISOString().split(".")[0],
           products: [],
         };
-        custom_structure.push(custom_schema);
+        if (custom_schema.carrier_product == "DR") {
+          custom_structure.push(custom_schema);
+        } else {
+          if (custom_schema.carrier_branch_id != null) {
+            custom_structure.push(custom_schema);
+          }
+        }
       });
 
       unfulfilled_orders.map((structure: any) => {

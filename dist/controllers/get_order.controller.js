@@ -114,7 +114,7 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                     order_id: structure.node.id.replace("gid://shopify/Order/", ""),
                     carrier: carrier === null || carrier === void 0 ? void 0 : carrier.ts_name,
                     carrier_product: carrier_product,
-                    carrier_branch_id: branch_id,
+                    carrier_branch_id: branch_id !== "" ? branch_id : null,
                     extra_branch_id: branch_id,
                     send_address_id: send_address_id,
                     priority: 4,
@@ -151,7 +151,14 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                     date_source: new Date().toISOString().split(".")[0],
                     products: [],
                 };
-                custom_structure.push(custom_schema);
+                if (custom_schema.carrier_product == "DR") {
+                    custom_structure.push(custom_schema);
+                }
+                else {
+                    if (custom_schema.carrier_branch_id != null) {
+                        custom_structure.push(custom_schema);
+                    }
+                }
             });
             unfulfilled_orders.map((structure) => {
                 custom_structure.map((struct) => {
@@ -188,7 +195,7 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                 });
                 if (!existing_order) {
                     try {
-                        const database_order = yield orders_model_1.default.create(structure);
+                        // const database_order = await Orders.create(structure);
                     }
                     catch (error) {
                         console.error("Error creating order in database:", error);
