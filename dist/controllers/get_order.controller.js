@@ -24,7 +24,6 @@ const sleep = (0, util_1.promisify)(setTimeout);
 dotenv_1.default.config();
 /*-------------------------------------GETTING UNFULFILLED ORDERS------------------------------------------------*/
 const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let orders_data;
     try {
         /*-------------------------------FETCHING DATA FROM CUSTOM API----------------------------------*/
         let unfulfilled_orders = yield (0, reusables_1.fetch_orders)();
@@ -195,7 +194,7 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                 });
                 if (!existing_order) {
                     try {
-                        // const database_order = await Orders.create(structure);
+                        const database_order = yield orders_model_1.default.create(structure);
                     }
                     catch (error) {
                         console.error("Error creating order in database:", error);
@@ -209,6 +208,7 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
                 yield (0, status_update_1.status_update)(structure.order_id, order_status);
                 yield sleep(1000);
             }
+            console.log("custom_structure", custom_structure);
             return res.status(200).json(custom_structure);
         }
     }

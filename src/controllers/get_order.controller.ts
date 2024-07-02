@@ -18,8 +18,6 @@ dotenv.config();
 /*-------------------------------------GETTING UNFULFILLED ORDERS------------------------------------------------*/
 
 export const get_unfulfilled_orders = async (req: Request, res: Response) => {
-  let orders_data: any;
-
   try {
     /*-------------------------------FETCHING DATA FROM CUSTOM API----------------------------------*/
 
@@ -232,6 +230,7 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
         await status_update(structure.order_id, order_status);
         await sleep(1000);
       }
+      console.log("custom_structure", custom_structure);
 
       return res.status(200).json(custom_structure);
     }
