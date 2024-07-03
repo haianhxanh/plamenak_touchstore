@@ -21,7 +21,7 @@ const fetch_orders = () => __awaiter(void 0, void 0, void 0, function* () {
     const query = `
     query GetOrders {
       orders(
-        query: "tag_not:'TS_IN_PROGRESS' AND tag_not:'TS_DOWNLOADED' AND tag_not:'TS_ERROR' AND (tag_not:'zasilkovna_unselected' OR tag_not:'balikovna_unselected') AND fulfillment_status:'unfulfilled' AND NOT financial_status:'voided' AND created_at:>'2024-06-29T22:00:00Z' AND (financial_status:'paid' OR tag:'COD')", 
+        query: "tag_not:'TS_IN_PROGRESS' AND tag_not:'TS_DOWNLOADED' AND tag_not:'TS_ERROR' AND (tag_not:'zasilkovna_unselected' OR tag_not:'balikovna_unselected') AND fulfillment_status:'unfulfilled' AND NOT financial_status:'voided' AND created_at:>'2024-06-29T22:00:00Z' AND (financial_status:'paid' OR tag:'COD') AND NOT status:'CANCELLED'", 
         first: 100
       ) {
         edges {
