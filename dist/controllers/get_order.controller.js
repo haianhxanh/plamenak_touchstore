@@ -27,8 +27,6 @@ const get_unfulfilled_orders = (req, res) => __awaiter(void 0, void 0, void 0, f
     try {
         /*-------------------------------FETCHING DATA FROM CUSTOM API----------------------------------*/
         let unfulfilled_orders = yield (0, reusables_1.fetch_orders)();
-        console.log(unfulfilled_orders.length);
-        return res.status(200).json(unfulfilled_orders);
         /*---------------------------------FILTERING UNFULFILLED ORDERS--------------------------------*/
         if (unfulfilled_orders.length === 0) {
             if (req.query.ts != "1") {
