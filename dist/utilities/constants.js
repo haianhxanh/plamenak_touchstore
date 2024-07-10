@@ -33,7 +33,7 @@ exports.CARRIERS = [
         product: "NB",
         carrier_product_name: "Balíkovna",
         tracking_url: "https://www.postaonline.cz/en/trackandtrace/-/zasilka/cislo?parcelNumbers=",
-        sender_id: null,
+        sender_id: "2",
     },
     {
         name: "Zásilkovna",
