@@ -22,6 +22,9 @@ export const get_unfulfilled_orders = async (req: Request, res: Response) => {
     /*-------------------------------FETCHING DATA FROM CUSTOM API----------------------------------*/
 
     let unfulfilled_orders = await fetch_orders();
+    unfulfilled_orders = unfulfilled_orders.filter((order: any) => {
+      return order.node.shippingAddress != null;
+    });
 
     /*---------------------------------FILTERING UNFULFILLED ORDERS--------------------------------*/
 
